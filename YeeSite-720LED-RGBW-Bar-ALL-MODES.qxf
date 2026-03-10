@@ -1,0 +1,1428 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE FixtureDefinition>
+<FixtureDefinition xmlns="http://www.qlcplus.org/FixtureDefinition">
+ <Creator>
+  <Name>Q Light Controller Plus</Name>
+  <Version>5.2.0</Version>
+  <Author>Drake</Author>
+ </Creator>
+ <Manufacturer>YeeSite</Manufacturer>
+ <Model>200W 720LED RGBW DJ Strobe Bar</Model>
+ <Type>LED Bar (Pixels)</Type>
+ <Channel Name="Dimmer">
+  <Group Byte="0">Intensity</Group>
+  <Capability Min="0" Max="255">Master Dimmer 0-100%</Capability>
+ </Channel>
+ <Channel Name="Red">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Red</Colour>
+  <Capability Min="0" Max="255">Red 0-100%</Capability>
+ </Channel>
+ <Channel Name="Green">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Green</Colour>
+  <Capability Min="0" Max="255">Green 0-100%</Capability>
+ </Channel>
+ <Channel Name="Blue">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Blue</Colour>
+  <Capability Min="0" Max="255">Blue 0-100%</Capability>
+ </Channel>
+ <Channel Name="White">
+  <Group Byte="0">Intensity</Group>
+  <Colour>White</Colour>
+  <Capability Min="0" Max="255">White 0-100%</Capability>
+ </Channel>
+ <Channel Name="Strobe">
+  <Group Byte="0">Shutter</Group>
+  <Capability Min="0" Max="10">Shutter Open</Capability>
+  <Capability Min="11" Max="255">Strobe slow to fast</Capability>
+ </Channel>
+ <Channel Name="Auto Program">
+  <Group Byte="0">Effect</Group>
+  <Capability Min="0" Max="0">Manual (DMX)</Capability>
+  <Capability Min="1" Max="255">Auto programs 1-12</Capability>
+ </Channel>
+ <Channel Name="Program Speed">
+  <Group Byte="0">Speed</Group>
+  <Capability Min="0" Max="255">Speed slow to fast</Capability>
+ </Channel>
+ <Channel Name="Sound Sensitivity">
+  <Group Byte="0">Effect</Group>
+  <Capability Min="0" Max="10">Sound OFF</Capability>
+  <Capability Min="11" Max="255">Sound sensitivity low-high</Capability>
+ </Channel>
+ <Channel Name="Dimmer Speed">
+  <Group Byte="0">Speed</Group>
+  <Capability Min="0" Max="255">Dimmer fade speed</Capability>
+ </Channel>
+ <Channel Name="CZ1 Red">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Red</Colour>
+  <Capability Min="0" Max="255">Color Zone 1 Red</Capability>
+ </Channel>
+ <Channel Name="CZ1 Green">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Green</Colour>
+  <Capability Min="0" Max="255">Color Zone 1 Green</Capability>
+ </Channel>
+ <Channel Name="CZ1 Blue">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Blue</Colour>
+  <Capability Min="0" Max="255">Color Zone 1 Blue</Capability>
+ </Channel>
+ <Channel Name="CZ2 Red">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Red</Colour>
+  <Capability Min="0" Max="255">Color Zone 2 Red</Capability>
+ </Channel>
+ <Channel Name="CZ2 Green">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Green</Colour>
+  <Capability Min="0" Max="255">Color Zone 2 Green</Capability>
+ </Channel>
+ <Channel Name="CZ2 Blue">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Blue</Colour>
+  <Capability Min="0" Max="255">Color Zone 2 Blue</Capability>
+ </Channel>
+ <Channel Name="CZ3 Red">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Red</Colour>
+  <Capability Min="0" Max="255">Color Zone 3 Red</Capability>
+ </Channel>
+ <Channel Name="CZ3 Green">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Green</Colour>
+  <Capability Min="0" Max="255">Color Zone 3 Green</Capability>
+ </Channel>
+ <Channel Name="CZ3 Blue">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Blue</Colour>
+  <Capability Min="0" Max="255">Color Zone 3 Blue</Capability>
+ </Channel>
+ <Channel Name="CZ4 Red">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Red</Colour>
+  <Capability Min="0" Max="255">Color Zone 4 Red</Capability>
+ </Channel>
+ <Channel Name="CZ4 Green">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Green</Colour>
+  <Capability Min="0" Max="255">Color Zone 4 Green</Capability>
+ </Channel>
+ <Channel Name="CZ4 Blue">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Blue</Colour>
+  <Capability Min="0" Max="255">Color Zone 4 Blue</Capability>
+ </Channel>
+ <Channel Name="CZ5 Red">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Red</Colour>
+  <Capability Min="0" Max="255">Color Zone 5 Red</Capability>
+ </Channel>
+ <Channel Name="CZ5 Green">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Green</Colour>
+  <Capability Min="0" Max="255">Color Zone 5 Green</Capability>
+ </Channel>
+ <Channel Name="CZ5 Blue">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Blue</Colour>
+  <Capability Min="0" Max="255">Color Zone 5 Blue</Capability>
+ </Channel>
+ <Channel Name="CZ6 Red">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Red</Colour>
+  <Capability Min="0" Max="255">Color Zone 6 Red</Capability>
+ </Channel>
+ <Channel Name="CZ6 Green">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Green</Colour>
+  <Capability Min="0" Max="255">Color Zone 6 Green</Capability>
+ </Channel>
+ <Channel Name="CZ6 Blue">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Blue</Colour>
+  <Capability Min="0" Max="255">Color Zone 6 Blue</Capability>
+ </Channel>
+ <Channel Name="CZ7 Red">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Red</Colour>
+  <Capability Min="0" Max="255">Color Zone 7 Red</Capability>
+ </Channel>
+ <Channel Name="CZ7 Green">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Green</Colour>
+  <Capability Min="0" Max="255">Color Zone 7 Green</Capability>
+ </Channel>
+ <Channel Name="CZ7 Blue">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Blue</Colour>
+  <Capability Min="0" Max="255">Color Zone 7 Blue</Capability>
+ </Channel>
+ <Channel Name="CZ8 Red">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Red</Colour>
+  <Capability Min="0" Max="255">Color Zone 8 Red</Capability>
+ </Channel>
+ <Channel Name="CZ8 Green">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Green</Colour>
+  <Capability Min="0" Max="255">Color Zone 8 Green</Capability>
+ </Channel>
+ <Channel Name="CZ8 Blue">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Blue</Colour>
+  <Capability Min="0" Max="255">Color Zone 8 Blue</Capability>
+ </Channel>
+ <Channel Name="CZ9 Red">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Red</Colour>
+  <Capability Min="0" Max="255">Color Zone 9 Red</Capability>
+ </Channel>
+ <Channel Name="CZ9 Green">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Green</Colour>
+  <Capability Min="0" Max="255">Color Zone 9 Green</Capability>
+ </Channel>
+ <Channel Name="CZ9 Blue">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Blue</Colour>
+  <Capability Min="0" Max="255">Color Zone 9 Blue</Capability>
+ </Channel>
+ <Channel Name="CZ10 Red">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Red</Colour>
+  <Capability Min="0" Max="255">Color Zone 10 Red</Capability>
+ </Channel>
+ <Channel Name="CZ10 Green">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Green</Colour>
+  <Capability Min="0" Max="255">Color Zone 10 Green</Capability>
+ </Channel>
+ <Channel Name="CZ10 Blue">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Blue</Colour>
+  <Capability Min="0" Max="255">Color Zone 10 Blue</Capability>
+ </Channel>
+ <Channel Name="CZ11 Red">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Red</Colour>
+  <Capability Min="0" Max="255">Color Zone 11 Red</Capability>
+ </Channel>
+ <Channel Name="CZ11 Green">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Green</Colour>
+  <Capability Min="0" Max="255">Color Zone 11 Green</Capability>
+ </Channel>
+ <Channel Name="CZ11 Blue">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Blue</Colour>
+  <Capability Min="0" Max="255">Color Zone 11 Blue</Capability>
+ </Channel>
+ <Channel Name="CZ12 Red">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Red</Colour>
+  <Capability Min="0" Max="255">Color Zone 12 Red</Capability>
+ </Channel>
+ <Channel Name="CZ12 Green">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Green</Colour>
+  <Capability Min="0" Max="255">Color Zone 12 Green</Capability>
+ </Channel>
+ <Channel Name="CZ12 Blue">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Blue</Colour>
+  <Capability Min="0" Max="255">Color Zone 12 Blue</Capability>
+ </Channel>
+ <Channel Name="CZ13 Red">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Red</Colour>
+  <Capability Min="0" Max="255">Color Zone 13 Red</Capability>
+ </Channel>
+ <Channel Name="CZ13 Green">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Green</Colour>
+  <Capability Min="0" Max="255">Color Zone 13 Green</Capability>
+ </Channel>
+ <Channel Name="CZ13 Blue">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Blue</Colour>
+  <Capability Min="0" Max="255">Color Zone 13 Blue</Capability>
+ </Channel>
+ <Channel Name="CZ14 Red">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Red</Colour>
+  <Capability Min="0" Max="255">Color Zone 14 Red</Capability>
+ </Channel>
+ <Channel Name="CZ14 Green">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Green</Colour>
+  <Capability Min="0" Max="255">Color Zone 14 Green</Capability>
+ </Channel>
+ <Channel Name="CZ14 Blue">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Blue</Colour>
+  <Capability Min="0" Max="255">Color Zone 14 Blue</Capability>
+ </Channel>
+ <Channel Name="CZ15 Red">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Red</Colour>
+  <Capability Min="0" Max="255">Color Zone 15 Red</Capability>
+ </Channel>
+ <Channel Name="CZ15 Green">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Green</Colour>
+  <Capability Min="0" Max="255">Color Zone 15 Green</Capability>
+ </Channel>
+ <Channel Name="CZ15 Blue">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Blue</Colour>
+  <Capability Min="0" Max="255">Color Zone 15 Blue</Capability>
+ </Channel>
+ <Channel Name="CZ16 Red">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Red</Colour>
+  <Capability Min="0" Max="255">Color Zone 16 Red</Capability>
+ </Channel>
+ <Channel Name="CZ16 Green">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Green</Colour>
+  <Capability Min="0" Max="255">Color Zone 16 Green</Capability>
+ </Channel>
+ <Channel Name="CZ16 Blue">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Blue</Colour>
+  <Capability Min="0" Max="255">Color Zone 16 Blue</Capability>
+ </Channel>
+ <Channel Name="CZ17 Red">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Red</Colour>
+  <Capability Min="0" Max="255">Color Zone 17 Red</Capability>
+ </Channel>
+ <Channel Name="CZ17 Green">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Green</Colour>
+  <Capability Min="0" Max="255">Color Zone 17 Green</Capability>
+ </Channel>
+ <Channel Name="CZ17 Blue">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Blue</Colour>
+  <Capability Min="0" Max="255">Color Zone 17 Blue</Capability>
+ </Channel>
+ <Channel Name="CZ18 Red">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Red</Colour>
+  <Capability Min="0" Max="255">Color Zone 18 Red</Capability>
+ </Channel>
+ <Channel Name="CZ18 Green">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Green</Colour>
+  <Capability Min="0" Max="255">Color Zone 18 Green</Capability>
+ </Channel>
+ <Channel Name="CZ18 Blue">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Blue</Colour>
+  <Capability Min="0" Max="255">Color Zone 18 Blue</Capability>
+ </Channel>
+ <Channel Name="CZ19 Red">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Red</Colour>
+  <Capability Min="0" Max="255">Color Zone 19 Red</Capability>
+ </Channel>
+ <Channel Name="CZ19 Green">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Green</Colour>
+  <Capability Min="0" Max="255">Color Zone 19 Green</Capability>
+ </Channel>
+ <Channel Name="CZ19 Blue">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Blue</Colour>
+  <Capability Min="0" Max="255">Color Zone 19 Blue</Capability>
+ </Channel>
+ <Channel Name="CZ20 Red">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Red</Colour>
+  <Capability Min="0" Max="255">Color Zone 20 Red</Capability>
+ </Channel>
+ <Channel Name="CZ20 Green">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Green</Colour>
+  <Capability Min="0" Max="255">Color Zone 20 Green</Capability>
+ </Channel>
+ <Channel Name="CZ20 Blue">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Blue</Colour>
+  <Capability Min="0" Max="255">Color Zone 20 Blue</Capability>
+ </Channel>
+ <Channel Name="CZ21 Red">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Red</Colour>
+  <Capability Min="0" Max="255">Color Zone 21 Red</Capability>
+ </Channel>
+ <Channel Name="CZ21 Green">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Green</Colour>
+  <Capability Min="0" Max="255">Color Zone 21 Green</Capability>
+ </Channel>
+ <Channel Name="CZ21 Blue">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Blue</Colour>
+  <Capability Min="0" Max="255">Color Zone 21 Blue</Capability>
+ </Channel>
+ <Channel Name="CZ22 Red">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Red</Colour>
+  <Capability Min="0" Max="255">Color Zone 22 Red</Capability>
+ </Channel>
+ <Channel Name="CZ22 Green">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Green</Colour>
+  <Capability Min="0" Max="255">Color Zone 22 Green</Capability>
+ </Channel>
+ <Channel Name="CZ22 Blue">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Blue</Colour>
+  <Capability Min="0" Max="255">Color Zone 22 Blue</Capability>
+ </Channel>
+ <Channel Name="CZ23 Red">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Red</Colour>
+  <Capability Min="0" Max="255">Color Zone 23 Red</Capability>
+ </Channel>
+ <Channel Name="CZ23 Green">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Green</Colour>
+  <Capability Min="0" Max="255">Color Zone 23 Green</Capability>
+ </Channel>
+ <Channel Name="CZ23 Blue">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Blue</Colour>
+  <Capability Min="0" Max="255">Color Zone 23 Blue</Capability>
+ </Channel>
+ <Channel Name="CZ24 Red">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Red</Colour>
+  <Capability Min="0" Max="255">Color Zone 24 Red</Capability>
+ </Channel>
+ <Channel Name="CZ24 Green">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Green</Colour>
+  <Capability Min="0" Max="255">Color Zone 24 Green</Capability>
+ </Channel>
+ <Channel Name="CZ24 Blue">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Blue</Colour>
+  <Capability Min="0" Max="255">Color Zone 24 Blue</Capability>
+ </Channel>
+ <Channel Name="CZ25 Red">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Red</Colour>
+  <Capability Min="0" Max="255">Color Zone 25 Red</Capability>
+ </Channel>
+ <Channel Name="CZ25 Green">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Green</Colour>
+  <Capability Min="0" Max="255">Color Zone 25 Green</Capability>
+ </Channel>
+ <Channel Name="CZ25 Blue">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Blue</Colour>
+  <Capability Min="0" Max="255">Color Zone 25 Blue</Capability>
+ </Channel>
+ <Channel Name="CZ26 Red">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Red</Colour>
+  <Capability Min="0" Max="255">Color Zone 26 Red</Capability>
+ </Channel>
+ <Channel Name="CZ26 Green">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Green</Colour>
+  <Capability Min="0" Max="255">Color Zone 26 Green</Capability>
+ </Channel>
+ <Channel Name="CZ26 Blue">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Blue</Colour>
+  <Capability Min="0" Max="255">Color Zone 26 Blue</Capability>
+ </Channel>
+ <Channel Name="CZ27 Red">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Red</Colour>
+  <Capability Min="0" Max="255">Color Zone 27 Red</Capability>
+ </Channel>
+ <Channel Name="CZ27 Green">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Green</Colour>
+  <Capability Min="0" Max="255">Color Zone 27 Green</Capability>
+ </Channel>
+ <Channel Name="CZ27 Blue">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Blue</Colour>
+  <Capability Min="0" Max="255">Color Zone 27 Blue</Capability>
+ </Channel>
+ <Channel Name="CZ28 Red">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Red</Colour>
+  <Capability Min="0" Max="255">Color Zone 28 Red</Capability>
+ </Channel>
+ <Channel Name="CZ28 Green">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Green</Colour>
+  <Capability Min="0" Max="255">Color Zone 28 Green</Capability>
+ </Channel>
+ <Channel Name="CZ28 Blue">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Blue</Colour>
+  <Capability Min="0" Max="255">Color Zone 28 Blue</Capability>
+ </Channel>
+ <Channel Name="CZ29 Red">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Red</Colour>
+  <Capability Min="0" Max="255">Color Zone 29 Red</Capability>
+ </Channel>
+ <Channel Name="CZ29 Green">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Green</Colour>
+  <Capability Min="0" Max="255">Color Zone 29 Green</Capability>
+ </Channel>
+ <Channel Name="CZ29 Blue">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Blue</Colour>
+  <Capability Min="0" Max="255">Color Zone 29 Blue</Capability>
+ </Channel>
+ <Channel Name="CZ30 Red">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Red</Colour>
+  <Capability Min="0" Max="255">Color Zone 30 Red</Capability>
+ </Channel>
+ <Channel Name="CZ30 Green">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Green</Colour>
+  <Capability Min="0" Max="255">Color Zone 30 Green</Capability>
+ </Channel>
+ <Channel Name="CZ30 Blue">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Blue</Colour>
+  <Capability Min="0" Max="255">Color Zone 30 Blue</Capability>
+ </Channel>
+ <Channel Name="CZ31 Red">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Red</Colour>
+  <Capability Min="0" Max="255">Color Zone 31 Red</Capability>
+ </Channel>
+ <Channel Name="CZ31 Green">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Green</Colour>
+  <Capability Min="0" Max="255">Color Zone 31 Green</Capability>
+ </Channel>
+ <Channel Name="CZ31 Blue">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Blue</Colour>
+  <Capability Min="0" Max="255">Color Zone 31 Blue</Capability>
+ </Channel>
+ <Channel Name="CZ32 Red">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Red</Colour>
+  <Capability Min="0" Max="255">Color Zone 32 Red</Capability>
+ </Channel>
+ <Channel Name="CZ32 Green">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Green</Colour>
+  <Capability Min="0" Max="255">Color Zone 32 Green</Capability>
+ </Channel>
+ <Channel Name="CZ32 Blue">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Blue</Colour>
+  <Capability Min="0" Max="255">Color Zone 32 Blue</Capability>
+ </Channel>
+ <Channel Name="CZ33 Red">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Red</Colour>
+  <Capability Min="0" Max="255">Color Zone 33 Red</Capability>
+ </Channel>
+ <Channel Name="CZ33 Green">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Green</Colour>
+  <Capability Min="0" Max="255">Color Zone 33 Green</Capability>
+ </Channel>
+ <Channel Name="CZ33 Blue">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Blue</Colour>
+  <Capability Min="0" Max="255">Color Zone 33 Blue</Capability>
+ </Channel>
+ <Channel Name="CZ34 Red">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Red</Colour>
+  <Capability Min="0" Max="255">Color Zone 34 Red</Capability>
+ </Channel>
+ <Channel Name="CZ34 Green">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Green</Colour>
+  <Capability Min="0" Max="255">Color Zone 34 Green</Capability>
+ </Channel>
+ <Channel Name="CZ34 Blue">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Blue</Colour>
+  <Capability Min="0" Max="255">Color Zone 34 Blue</Capability>
+ </Channel>
+ <Channel Name="CZ35 Red">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Red</Colour>
+  <Capability Min="0" Max="255">Color Zone 35 Red</Capability>
+ </Channel>
+ <Channel Name="CZ35 Green">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Green</Colour>
+  <Capability Min="0" Max="255">Color Zone 35 Green</Capability>
+ </Channel>
+ <Channel Name="CZ35 Blue">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Blue</Colour>
+  <Capability Min="0" Max="255">Color Zone 35 Blue</Capability>
+ </Channel>
+ <Channel Name="CZ36 Red">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Red</Colour>
+  <Capability Min="0" Max="255">Color Zone 36 Red</Capability>
+ </Channel>
+ <Channel Name="CZ36 Green">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Green</Colour>
+  <Capability Min="0" Max="255">Color Zone 36 Green</Capability>
+ </Channel>
+ <Channel Name="CZ36 Blue">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Blue</Colour>
+  <Capability Min="0" Max="255">Color Zone 36 Blue</Capability>
+ </Channel>
+ <Channel Name="CZ37 Red">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Red</Colour>
+  <Capability Min="0" Max="255">Color Zone 37 Red</Capability>
+ </Channel>
+ <Channel Name="CZ37 Green">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Green</Colour>
+  <Capability Min="0" Max="255">Color Zone 37 Green</Capability>
+ </Channel>
+ <Channel Name="CZ37 Blue">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Blue</Colour>
+  <Capability Min="0" Max="255">Color Zone 37 Blue</Capability>
+ </Channel>
+ <Channel Name="CZ38 Red">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Red</Colour>
+  <Capability Min="0" Max="255">Color Zone 38 Red</Capability>
+ </Channel>
+ <Channel Name="CZ38 Green">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Green</Colour>
+  <Capability Min="0" Max="255">Color Zone 38 Green</Capability>
+ </Channel>
+ <Channel Name="CZ38 Blue">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Blue</Colour>
+  <Capability Min="0" Max="255">Color Zone 38 Blue</Capability>
+ </Channel>
+ <Channel Name="CZ39 Red">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Red</Colour>
+  <Capability Min="0" Max="255">Color Zone 39 Red</Capability>
+ </Channel>
+ <Channel Name="CZ39 Green">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Green</Colour>
+  <Capability Min="0" Max="255">Color Zone 39 Green</Capability>
+ </Channel>
+ <Channel Name="CZ39 Blue">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Blue</Colour>
+  <Capability Min="0" Max="255">Color Zone 39 Blue</Capability>
+ </Channel>
+ <Channel Name="CZ40 Red">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Red</Colour>
+  <Capability Min="0" Max="255">Color Zone 40 Red</Capability>
+ </Channel>
+ <Channel Name="CZ40 Green">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Green</Colour>
+  <Capability Min="0" Max="255">Color Zone 40 Green</Capability>
+ </Channel>
+ <Channel Name="CZ40 Blue">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Blue</Colour>
+  <Capability Min="0" Max="255">Color Zone 40 Blue</Capability>
+ </Channel>
+ <Channel Name="CZ41 Red">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Red</Colour>
+  <Capability Min="0" Max="255">Color Zone 41 Red</Capability>
+ </Channel>
+ <Channel Name="CZ41 Green">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Green</Colour>
+  <Capability Min="0" Max="255">Color Zone 41 Green</Capability>
+ </Channel>
+ <Channel Name="CZ41 Blue">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Blue</Colour>
+  <Capability Min="0" Max="255">Color Zone 41 Blue</Capability>
+ </Channel>
+ <Channel Name="CZ42 Red">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Red</Colour>
+  <Capability Min="0" Max="255">Color Zone 42 Red</Capability>
+ </Channel>
+ <Channel Name="CZ42 Green">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Green</Colour>
+  <Capability Min="0" Max="255">Color Zone 42 Green</Capability>
+ </Channel>
+ <Channel Name="CZ42 Blue">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Blue</Colour>
+  <Capability Min="0" Max="255">Color Zone 42 Blue</Capability>
+ </Channel>
+ <Channel Name="CZ43 Red">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Red</Colour>
+  <Capability Min="0" Max="255">Color Zone 43 Red</Capability>
+ </Channel>
+ <Channel Name="CZ43 Green">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Green</Colour>
+  <Capability Min="0" Max="255">Color Zone 43 Green</Capability>
+ </Channel>
+ <Channel Name="CZ43 Blue">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Blue</Colour>
+  <Capability Min="0" Max="255">Color Zone 43 Blue</Capability>
+ </Channel>
+ <Channel Name="CZ44 Red">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Red</Colour>
+  <Capability Min="0" Max="255">Color Zone 44 Red</Capability>
+ </Channel>
+ <Channel Name="CZ44 Green">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Green</Colour>
+  <Capability Min="0" Max="255">Color Zone 44 Green</Capability>
+ </Channel>
+ <Channel Name="CZ44 Blue">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Blue</Colour>
+  <Capability Min="0" Max="255">Color Zone 44 Blue</Capability>
+ </Channel>
+ <Channel Name="CZ45 Red">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Red</Colour>
+  <Capability Min="0" Max="255">Color Zone 45 Red</Capability>
+ </Channel>
+ <Channel Name="CZ45 Green">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Green</Colour>
+  <Capability Min="0" Max="255">Color Zone 45 Green</Capability>
+ </Channel>
+ <Channel Name="CZ45 Blue">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Blue</Colour>
+  <Capability Min="0" Max="255">Color Zone 45 Blue</Capability>
+ </Channel>
+ <Channel Name="CZ46 Red">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Red</Colour>
+  <Capability Min="0" Max="255">Color Zone 46 Red</Capability>
+ </Channel>
+ <Channel Name="CZ46 Green">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Green</Colour>
+  <Capability Min="0" Max="255">Color Zone 46 Green</Capability>
+ </Channel>
+ <Channel Name="CZ46 Blue">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Blue</Colour>
+  <Capability Min="0" Max="255">Color Zone 46 Blue</Capability>
+ </Channel>
+ <Channel Name="CZ47 Red">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Red</Colour>
+  <Capability Min="0" Max="255">Color Zone 47 Red</Capability>
+ </Channel>
+ <Channel Name="CZ47 Green">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Green</Colour>
+  <Capability Min="0" Max="255">Color Zone 47 Green</Capability>
+ </Channel>
+ <Channel Name="CZ47 Blue">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Blue</Colour>
+  <Capability Min="0" Max="255">Color Zone 47 Blue</Capability>
+ </Channel>
+ <Channel Name="CZ48 Red">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Red</Colour>
+  <Capability Min="0" Max="255">Color Zone 48 Red</Capability>
+ </Channel>
+ <Channel Name="CZ48 Green">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Green</Colour>
+  <Capability Min="0" Max="255">Color Zone 48 Green</Capability>
+ </Channel>
+ <Channel Name="CZ48 Blue">
+  <Group Byte="0">Intensity</Group>
+  <Colour>Blue</Colour>
+  <Capability Min="0" Max="255">Color Zone 48 Blue</Capability>
+ </Channel>
+ <Channel Name="WZ1">
+  <Group Byte="0">Intensity</Group>
+  <Colour>White</Colour>
+  <Capability Min="0" Max="255">White Zone 1</Capability>
+ </Channel>
+ <Channel Name="WZ2">
+  <Group Byte="0">Intensity</Group>
+  <Colour>White</Colour>
+  <Capability Min="0" Max="255">White Zone 2</Capability>
+ </Channel>
+ <Channel Name="WZ3">
+  <Group Byte="0">Intensity</Group>
+  <Colour>White</Colour>
+  <Capability Min="0" Max="255">White Zone 3</Capability>
+ </Channel>
+ <Channel Name="WZ4">
+  <Group Byte="0">Intensity</Group>
+  <Colour>White</Colour>
+  <Capability Min="0" Max="255">White Zone 4</Capability>
+ </Channel>
+ <Channel Name="WZ5">
+  <Group Byte="0">Intensity</Group>
+  <Colour>White</Colour>
+  <Capability Min="0" Max="255">White Zone 5</Capability>
+ </Channel>
+ <Channel Name="WZ6">
+  <Group Byte="0">Intensity</Group>
+  <Colour>White</Colour>
+  <Capability Min="0" Max="255">White Zone 6</Capability>
+ </Channel>
+ <Channel Name="WZ7">
+  <Group Byte="0">Intensity</Group>
+  <Colour>White</Colour>
+  <Capability Min="0" Max="255">White Zone 7</Capability>
+ </Channel>
+ <Channel Name="WZ8">
+  <Group Byte="0">Intensity</Group>
+  <Colour>White</Colour>
+  <Capability Min="0" Max="255">White Zone 8</Capability>
+ </Channel>
+ <Channel Name="WZ9">
+  <Group Byte="0">Intensity</Group>
+  <Colour>White</Colour>
+  <Capability Min="0" Max="255">White Zone 9</Capability>
+ </Channel>
+ <Channel Name="WZ10">
+  <Group Byte="0">Intensity</Group>
+  <Colour>White</Colour>
+  <Capability Min="0" Max="255">White Zone 10</Capability>
+ </Channel>
+ <Channel Name="WZ11">
+  <Group Byte="0">Intensity</Group>
+  <Colour>White</Colour>
+  <Capability Min="0" Max="255">White Zone 11</Capability>
+ </Channel>
+ <Channel Name="WZ12">
+  <Group Byte="0">Intensity</Group>
+  <Colour>White</Colour>
+  <Capability Min="0" Max="255">White Zone 12</Capability>
+ </Channel>
+ <Channel Name="WZ13">
+  <Group Byte="0">Intensity</Group>
+  <Colour>White</Colour>
+  <Capability Min="0" Max="255">White Zone 13</Capability>
+ </Channel>
+ <Channel Name="WZ14">
+  <Group Byte="0">Intensity</Group>
+  <Colour>White</Colour>
+  <Capability Min="0" Max="255">White Zone 14</Capability>
+ </Channel>
+ <Channel Name="WZ15">
+  <Group Byte="0">Intensity</Group>
+  <Colour>White</Colour>
+  <Capability Min="0" Max="255">White Zone 15</Capability>
+ </Channel>
+ <Channel Name="WZ16">
+  <Group Byte="0">Intensity</Group>
+  <Colour>White</Colour>
+  <Capability Min="0" Max="255">White Zone 16</Capability>
+ </Channel>
+ <Channel Name="WZ17">
+  <Group Byte="0">Intensity</Group>
+  <Colour>White</Colour>
+  <Capability Min="0" Max="255">White Zone 17</Capability>
+ </Channel>
+ <Channel Name="WZ18">
+  <Group Byte="0">Intensity</Group>
+  <Colour>White</Colour>
+  <Capability Min="0" Max="255">White Zone 18</Capability>
+ </Channel>
+ <Channel Name="WZ19">
+  <Group Byte="0">Intensity</Group>
+  <Colour>White</Colour>
+  <Capability Min="0" Max="255">White Zone 19</Capability>
+ </Channel>
+ <Channel Name="WZ20">
+  <Group Byte="0">Intensity</Group>
+  <Colour>White</Colour>
+  <Capability Min="0" Max="255">White Zone 20</Capability>
+ </Channel>
+ <Channel Name="WZ21">
+  <Group Byte="0">Intensity</Group>
+  <Colour>White</Colour>
+  <Capability Min="0" Max="255">White Zone 21</Capability>
+ </Channel>
+ <Channel Name="WZ22">
+  <Group Byte="0">Intensity</Group>
+  <Colour>White</Colour>
+  <Capability Min="0" Max="255">White Zone 22</Capability>
+ </Channel>
+ <Channel Name="WZ23">
+  <Group Byte="0">Intensity</Group>
+  <Colour>White</Colour>
+  <Capability Min="0" Max="255">White Zone 23</Capability>
+ </Channel>
+ <Channel Name="WZ24">
+  <Group Byte="0">Intensity</Group>
+  <Colour>White</Colour>
+  <Capability Min="0" Max="255">White Zone 24</Capability>
+ </Channel>
+ <Mode Name="6-Channel">
+  <Channel Number="0">Red</Channel>
+  <Channel Number="1">Green</Channel>
+  <Channel Number="2">Blue</Channel>
+  <Channel Number="3">White</Channel>
+  <Channel Number="4">Dimmer</Channel>
+  <Channel Number="5">Strobe</Channel>
+  <Head>
+   <Channel>0</Channel>
+   <Channel>1</Channel>
+   <Channel>2</Channel>
+   <Channel>3</Channel>
+   <Channel>4</Channel>
+   <Channel>5</Channel>
+  </Head>
+ </Mode>
+ <Mode Name="10-Channel">
+  <Channel Number="0">Dimmer</Channel>
+  <Channel Number="1">Red</Channel>
+  <Channel Number="2">Green</Channel>
+  <Channel Number="3">Blue</Channel>
+  <Channel Number="4">White</Channel>
+  <Channel Number="5">Strobe</Channel>
+  <Channel Number="6">Auto Program</Channel>
+  <Channel Number="7">Program Speed</Channel>
+  <Channel Number="8">Sound Sensitivity</Channel>
+  <Channel Number="9">Dimmer Speed</Channel>
+  <Head>
+   <Channel>0</Channel>
+   <Channel>1</Channel>
+   <Channel>2</Channel>
+   <Channel>3</Channel>
+   <Channel>4</Channel>
+   <Channel>5</Channel>
+   <Channel>6</Channel>
+   <Channel>7</Channel>
+   <Channel>8</Channel>
+   <Channel>9</Channel>
+  </Head>
+ </Mode>
+ <Mode Name="168-Channel">
+  <Channel Number="0">CZ1 Red</Channel>
+  <Channel Number="1">CZ1 Green</Channel>
+  <Channel Number="2">CZ1 Blue</Channel>
+  <Channel Number="3">CZ2 Red</Channel>
+  <Channel Number="4">CZ2 Green</Channel>
+  <Channel Number="5">CZ2 Blue</Channel>
+  <Channel Number="6">CZ3 Red</Channel>
+  <Channel Number="7">CZ3 Green</Channel>
+  <Channel Number="8">CZ3 Blue</Channel>
+  <Channel Number="9">CZ4 Red</Channel>
+  <Channel Number="10">CZ4 Green</Channel>
+  <Channel Number="11">CZ4 Blue</Channel>
+  <Channel Number="12">CZ5 Red</Channel>
+  <Channel Number="13">CZ5 Green</Channel>
+  <Channel Number="14">CZ5 Blue</Channel>
+  <Channel Number="15">CZ6 Red</Channel>
+  <Channel Number="16">CZ6 Green</Channel>
+  <Channel Number="17">CZ6 Blue</Channel>
+  <Channel Number="18">CZ7 Red</Channel>
+  <Channel Number="19">CZ7 Green</Channel>
+  <Channel Number="20">CZ7 Blue</Channel>
+  <Channel Number="21">CZ8 Red</Channel>
+  <Channel Number="22">CZ8 Green</Channel>
+  <Channel Number="23">CZ8 Blue</Channel>
+  <Channel Number="24">CZ9 Red</Channel>
+  <Channel Number="25">CZ9 Green</Channel>
+  <Channel Number="26">CZ9 Blue</Channel>
+  <Channel Number="27">CZ10 Red</Channel>
+  <Channel Number="28">CZ10 Green</Channel>
+  <Channel Number="29">CZ10 Blue</Channel>
+  <Channel Number="30">CZ11 Red</Channel>
+  <Channel Number="31">CZ11 Green</Channel>
+  <Channel Number="32">CZ11 Blue</Channel>
+  <Channel Number="33">CZ12 Red</Channel>
+  <Channel Number="34">CZ12 Green</Channel>
+  <Channel Number="35">CZ12 Blue</Channel>
+  <Channel Number="36">CZ13 Red</Channel>
+  <Channel Number="37">CZ13 Green</Channel>
+  <Channel Number="38">CZ13 Blue</Channel>
+  <Channel Number="39">CZ14 Red</Channel>
+  <Channel Number="40">CZ14 Green</Channel>
+  <Channel Number="41">CZ14 Blue</Channel>
+  <Channel Number="42">CZ15 Red</Channel>
+  <Channel Number="43">CZ15 Green</Channel>
+  <Channel Number="44">CZ15 Blue</Channel>
+  <Channel Number="45">CZ16 Red</Channel>
+  <Channel Number="46">CZ16 Green</Channel>
+  <Channel Number="47">CZ16 Blue</Channel>
+  <Channel Number="48">CZ17 Red</Channel>
+  <Channel Number="49">CZ17 Green</Channel>
+  <Channel Number="50">CZ17 Blue</Channel>
+  <Channel Number="51">CZ18 Red</Channel>
+  <Channel Number="52">CZ18 Green</Channel>
+  <Channel Number="53">CZ18 Blue</Channel>
+  <Channel Number="54">CZ19 Red</Channel>
+  <Channel Number="55">CZ19 Green</Channel>
+  <Channel Number="56">CZ19 Blue</Channel>
+  <Channel Number="57">CZ20 Red</Channel>
+  <Channel Number="58">CZ20 Green</Channel>
+  <Channel Number="59">CZ20 Blue</Channel>
+  <Channel Number="60">CZ21 Red</Channel>
+  <Channel Number="61">CZ21 Green</Channel>
+  <Channel Number="62">CZ21 Blue</Channel>
+  <Channel Number="63">CZ22 Red</Channel>
+  <Channel Number="64">CZ22 Green</Channel>
+  <Channel Number="65">CZ22 Blue</Channel>
+  <Channel Number="66">CZ23 Red</Channel>
+  <Channel Number="67">CZ23 Green</Channel>
+  <Channel Number="68">CZ23 Blue</Channel>
+  <Channel Number="69">CZ24 Red</Channel>
+  <Channel Number="70">CZ24 Green</Channel>
+  <Channel Number="71">CZ24 Blue</Channel>
+  <Channel Number="72">CZ25 Red</Channel>
+  <Channel Number="73">CZ25 Green</Channel>
+  <Channel Number="74">CZ25 Blue</Channel>
+  <Channel Number="75">CZ26 Red</Channel>
+  <Channel Number="76">CZ26 Green</Channel>
+  <Channel Number="77">CZ26 Blue</Channel>
+  <Channel Number="78">CZ27 Red</Channel>
+  <Channel Number="79">CZ27 Green</Channel>
+  <Channel Number="80">CZ27 Blue</Channel>
+  <Channel Number="81">CZ28 Red</Channel>
+  <Channel Number="82">CZ28 Green</Channel>
+  <Channel Number="83">CZ28 Blue</Channel>
+  <Channel Number="84">CZ29 Red</Channel>
+  <Channel Number="85">CZ29 Green</Channel>
+  <Channel Number="86">CZ29 Blue</Channel>
+  <Channel Number="87">CZ30 Red</Channel>
+  <Channel Number="88">CZ30 Green</Channel>
+  <Channel Number="89">CZ30 Blue</Channel>
+  <Channel Number="90">CZ31 Red</Channel>
+  <Channel Number="91">CZ31 Green</Channel>
+  <Channel Number="92">CZ31 Blue</Channel>
+  <Channel Number="93">CZ32 Red</Channel>
+  <Channel Number="94">CZ32 Green</Channel>
+  <Channel Number="95">CZ32 Blue</Channel>
+  <Channel Number="96">CZ33 Red</Channel>
+  <Channel Number="97">CZ33 Green</Channel>
+  <Channel Number="98">CZ33 Blue</Channel>
+  <Channel Number="99">CZ34 Red</Channel>
+  <Channel Number="100">CZ34 Green</Channel>
+  <Channel Number="101">CZ34 Blue</Channel>
+  <Channel Number="102">CZ35 Red</Channel>
+  <Channel Number="103">CZ35 Green</Channel>
+  <Channel Number="104">CZ35 Blue</Channel>
+  <Channel Number="105">CZ36 Red</Channel>
+  <Channel Number="106">CZ36 Green</Channel>
+  <Channel Number="107">CZ36 Blue</Channel>
+  <Channel Number="108">CZ37 Red</Channel>
+  <Channel Number="109">CZ37 Green</Channel>
+  <Channel Number="110">CZ37 Blue</Channel>
+  <Channel Number="111">CZ38 Red</Channel>
+  <Channel Number="112">CZ38 Green</Channel>
+  <Channel Number="113">CZ38 Blue</Channel>
+  <Channel Number="114">CZ39 Red</Channel>
+  <Channel Number="115">CZ39 Green</Channel>
+  <Channel Number="116">CZ39 Blue</Channel>
+  <Channel Number="117">CZ40 Red</Channel>
+  <Channel Number="118">CZ40 Green</Channel>
+  <Channel Number="119">CZ40 Blue</Channel>
+  <Channel Number="120">CZ41 Red</Channel>
+  <Channel Number="121">CZ41 Green</Channel>
+  <Channel Number="122">CZ41 Blue</Channel>
+  <Channel Number="123">CZ42 Red</Channel>
+  <Channel Number="124">CZ42 Green</Channel>
+  <Channel Number="125">CZ42 Blue</Channel>
+  <Channel Number="126">CZ43 Red</Channel>
+  <Channel Number="127">CZ43 Green</Channel>
+  <Channel Number="128">CZ43 Blue</Channel>
+  <Channel Number="129">CZ44 Red</Channel>
+  <Channel Number="130">CZ44 Green</Channel>
+  <Channel Number="131">CZ44 Blue</Channel>
+  <Channel Number="132">CZ45 Red</Channel>
+  <Channel Number="133">CZ45 Green</Channel>
+  <Channel Number="134">CZ45 Blue</Channel>
+  <Channel Number="135">CZ46 Red</Channel>
+  <Channel Number="136">CZ46 Green</Channel>
+  <Channel Number="137">CZ46 Blue</Channel>
+  <Channel Number="138">CZ47 Red</Channel>
+  <Channel Number="139">CZ47 Green</Channel>
+  <Channel Number="140">CZ47 Blue</Channel>
+  <Channel Number="141">CZ48 Red</Channel>
+  <Channel Number="142">CZ48 Green</Channel>
+  <Channel Number="143">CZ48 Blue</Channel>
+  <Channel Number="144">WZ1</Channel>
+  <Channel Number="145">WZ2</Channel>
+  <Channel Number="146">WZ3</Channel>
+  <Channel Number="147">WZ4</Channel>
+  <Channel Number="148">WZ5</Channel>
+  <Channel Number="149">WZ6</Channel>
+  <Channel Number="150">WZ7</Channel>
+  <Channel Number="151">WZ8</Channel>
+  <Channel Number="152">WZ9</Channel>
+  <Channel Number="153">WZ10</Channel>
+  <Channel Number="154">WZ11</Channel>
+  <Channel Number="155">WZ12</Channel>
+  <Channel Number="156">WZ13</Channel>
+  <Channel Number="157">WZ14</Channel>
+  <Channel Number="158">WZ15</Channel>
+  <Channel Number="159">WZ16</Channel>
+  <Channel Number="160">WZ17</Channel>
+  <Channel Number="161">WZ18</Channel>
+  <Channel Number="162">WZ19</Channel>
+  <Channel Number="163">WZ20</Channel>
+  <Channel Number="164">WZ21</Channel>
+  <Channel Number="165">WZ22</Channel>
+  <Channel Number="166">WZ23</Channel>
+  <Channel Number="167">WZ24</Channel>
+  <Head>
+   <Channel>0</Channel>
+   <Channel>1</Channel>
+   <Channel>2</Channel>
+  </Head>
+  <Head>
+   <Channel>3</Channel>
+   <Channel>4</Channel>
+   <Channel>5</Channel>
+  </Head>
+  <Head>
+   <Channel>6</Channel>
+   <Channel>7</Channel>
+   <Channel>8</Channel>
+  </Head>
+  <Head>
+   <Channel>9</Channel>
+   <Channel>10</Channel>
+   <Channel>11</Channel>
+  </Head>
+  <Head>
+   <Channel>12</Channel>
+   <Channel>13</Channel>
+   <Channel>14</Channel>
+  </Head>
+  <Head>
+   <Channel>15</Channel>
+   <Channel>16</Channel>
+   <Channel>17</Channel>
+  </Head>
+  <Head>
+   <Channel>18</Channel>
+   <Channel>19</Channel>
+   <Channel>20</Channel>
+  </Head>
+  <Head>
+   <Channel>21</Channel>
+   <Channel>22</Channel>
+   <Channel>23</Channel>
+  </Head>
+  <Head>
+   <Channel>24</Channel>
+   <Channel>25</Channel>
+   <Channel>26</Channel>
+  </Head>
+  <Head>
+   <Channel>27</Channel>
+   <Channel>28</Channel>
+   <Channel>29</Channel>
+  </Head>
+  <Head>
+   <Channel>30</Channel>
+   <Channel>31</Channel>
+   <Channel>32</Channel>
+  </Head>
+  <Head>
+   <Channel>33</Channel>
+   <Channel>34</Channel>
+   <Channel>35</Channel>
+  </Head>
+  <Head>
+   <Channel>36</Channel>
+   <Channel>37</Channel>
+   <Channel>38</Channel>
+  </Head>
+  <Head>
+   <Channel>39</Channel>
+   <Channel>40</Channel>
+   <Channel>41</Channel>
+  </Head>
+  <Head>
+   <Channel>42</Channel>
+   <Channel>43</Channel>
+   <Channel>44</Channel>
+  </Head>
+  <Head>
+   <Channel>45</Channel>
+   <Channel>46</Channel>
+   <Channel>47</Channel>
+  </Head>
+  <Head>
+   <Channel>48</Channel>
+   <Channel>49</Channel>
+   <Channel>50</Channel>
+  </Head>
+  <Head>
+   <Channel>51</Channel>
+   <Channel>52</Channel>
+   <Channel>53</Channel>
+  </Head>
+  <Head>
+   <Channel>54</Channel>
+   <Channel>55</Channel>
+   <Channel>56</Channel>
+  </Head>
+  <Head>
+   <Channel>57</Channel>
+   <Channel>58</Channel>
+   <Channel>59</Channel>
+  </Head>
+  <Head>
+   <Channel>60</Channel>
+   <Channel>61</Channel>
+   <Channel>62</Channel>
+  </Head>
+  <Head>
+   <Channel>63</Channel>
+   <Channel>64</Channel>
+   <Channel>65</Channel>
+  </Head>
+  <Head>
+   <Channel>66</Channel>
+   <Channel>67</Channel>
+   <Channel>68</Channel>
+  </Head>
+  <Head>
+   <Channel>69</Channel>
+   <Channel>70</Channel>
+   <Channel>71</Channel>
+  </Head>
+  <Head>
+   <Channel>72</Channel>
+   <Channel>73</Channel>
+   <Channel>74</Channel>
+  </Head>
+  <Head>
+   <Channel>75</Channel>
+   <Channel>76</Channel>
+   <Channel>77</Channel>
+  </Head>
+  <Head>
+   <Channel>78</Channel>
+   <Channel>79</Channel>
+   <Channel>80</Channel>
+  </Head>
+  <Head>
+   <Channel>81</Channel>
+   <Channel>82</Channel>
+   <Channel>83</Channel>
+  </Head>
+  <Head>
+   <Channel>84</Channel>
+   <Channel>85</Channel>
+   <Channel>86</Channel>
+  </Head>
+  <Head>
+   <Channel>87</Channel>
+   <Channel>88</Channel>
+   <Channel>89</Channel>
+  </Head>
+  <Head>
+   <Channel>90</Channel>
+   <Channel>91</Channel>
+   <Channel>92</Channel>
+  </Head>
+  <Head>
+   <Channel>93</Channel>
+   <Channel>94</Channel>
+   <Channel>95</Channel>
+  </Head>
+  <Head>
+   <Channel>96</Channel>
+   <Channel>97</Channel>
+   <Channel>98</Channel>
+  </Head>
+  <Head>
+   <Channel>99</Channel>
+   <Channel>100</Channel>
+   <Channel>101</Channel>
+  </Head>
+  <Head>
+   <Channel>102</Channel>
+   <Channel>103</Channel>
+   <Channel>104</Channel>
+  </Head>
+  <Head>
+   <Channel>105</Channel>
+   <Channel>106</Channel>
+   <Channel>107</Channel>
+  </Head>
+  <Head>
+   <Channel>108</Channel>
+   <Channel>109</Channel>
+   <Channel>110</Channel>
+  </Head>
+  <Head>
+   <Channel>111</Channel>
+   <Channel>112</Channel>
+   <Channel>113</Channel>
+  </Head>
+  <Head>
+   <Channel>114</Channel>
+   <Channel>115</Channel>
+   <Channel>116</Channel>
+  </Head>
+  <Head>
+   <Channel>117</Channel>
+   <Channel>118</Channel>
+   <Channel>119</Channel>
+  </Head>
+  <Head>
+   <Channel>120</Channel>
+   <Channel>121</Channel>
+   <Channel>122</Channel>
+  </Head>
+  <Head>
+   <Channel>123</Channel>
+   <Channel>124</Channel>
+   <Channel>125</Channel>
+  </Head>
+  <Head>
+   <Channel>126</Channel>
+   <Channel>127</Channel>
+   <Channel>128</Channel>
+  </Head>
+  <Head>
+   <Channel>129</Channel>
+   <Channel>130</Channel>
+   <Channel>131</Channel>
+  </Head>
+  <Head>
+   <Channel>132</Channel>
+   <Channel>133</Channel>
+   <Channel>134</Channel>
+  </Head>
+  <Head>
+   <Channel>135</Channel>
+   <Channel>136</Channel>
+   <Channel>137</Channel>
+  </Head>
+  <Head>
+   <Channel>138</Channel>
+   <Channel>139</Channel>
+   <Channel>140</Channel>
+  </Head>
+  <Head>
+   <Channel>141</Channel>
+   <Channel>142</Channel>
+   <Channel>143</Channel>
+  </Head>
+  <Head>
+   <Channel>144</Channel>
+  </Head>
+  <Head>
+   <Channel>145</Channel>
+  </Head>
+  <Head>
+   <Channel>146</Channel>
+  </Head>
+  <Head>
+   <Channel>147</Channel>
+  </Head>
+  <Head>
+   <Channel>148</Channel>
+  </Head>
+  <Head>
+   <Channel>149</Channel>
+  </Head>
+  <Head>
+   <Channel>150</Channel>
+  </Head>
+  <Head>
+   <Channel>151</Channel>
+  </Head>
+  <Head>
+   <Channel>152</Channel>
+  </Head>
+  <Head>
+   <Channel>153</Channel>
+  </Head>
+  <Head>
+   <Channel>154</Channel>
+  </Head>
+  <Head>
+   <Channel>155</Channel>
+  </Head>
+  <Head>
+   <Channel>156</Channel>
+  </Head>
+  <Head>
+   <Channel>157</Channel>
+  </Head>
+  <Head>
+   <Channel>158</Channel>
+  </Head>
+  <Head>
+   <Channel>159</Channel>
+  </Head>
+  <Head>
+   <Channel>160</Channel>
+  </Head>
+  <Head>
+   <Channel>161</Channel>
+  </Head>
+  <Head>
+   <Channel>162</Channel>
+  </Head>
+  <Head>
+   <Channel>163</Channel>
+  </Head>
+  <Head>
+   <Channel>164</Channel>
+  </Head>
+  <Head>
+   <Channel>165</Channel>
+  </Head>
+  <Head>
+   <Channel>166</Channel>
+  </Head>
+  <Head>
+   <Channel>167</Channel>
+  </Head>
+ </Mode>
+ <Physical>
+  <Bulb Type="" Lumens="0" ColourTemperature="0"/>
+  <Dimensions Weight="0" Width="970" Height="70" Depth="60"/>
+  <Lens Name="Other" DegreesMin="0" DegreesMax="0"/>
+  <Focus Type="Fixed" PanMax="0" TiltMax="0"/>
+  <Technical PowerConsumption="200" DmxConnector="3-pin"/>
+ </Physical>
+</FixtureDefinition>
