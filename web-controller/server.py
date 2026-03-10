@@ -656,9 +656,21 @@ def ws_stop(_data=None):
 # ---- MAIN ----
 
 if __name__ == "__main__":
-    engine = threading.Thread(target=animation_loop, daemon=True)
-    engine.start()
+    import subprocess
+    import sys
+
     print(f"YeeSite Web Controller on http://{WEB_HOST}:{WEB_PORT}")
     print(f"OLA: {OLA_URL} universe {DMX_UNIVERSE}")
     print(f"Layout: {NUM_COLOR_ZONES} color zones (RGB) + {NUM_WHITE_ZONES} white zones")
-    socketio.run(app, host=WEB_HOST, port=WEB_PORT, allow_unsafe_werkzeug=True)
+    sys.exit(
+        subprocess.call(
+            [
+                sys.executable,
+                "-m",
+                "gunicorn",
+                "-c",
+                "gunicorn_config.py",
+                "server:app",
+            ]
+        )
+    )

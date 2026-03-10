@@ -18,7 +18,7 @@ pip install -r requirements.txt
 python server.py
 ```
 
-Open `http://localhost:5003` in a browser.
+Open `http://localhost:5003` in a browser. The server runs under [Gunicorn](https://gunicorn.org/) with threaded workers and [simple-websocket](https://github.com/miguelgrinberg/simple-websocket) for production-ready WebSocket support.
 
 By default the controller talks to OLA at `10.0.0.10:9090` on universe 1. Edit `config.py` or set environment variables to change this (see [Configuration](#configuration)).
 
