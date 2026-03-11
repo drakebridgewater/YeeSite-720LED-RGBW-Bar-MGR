@@ -1050,6 +1050,239 @@ input[type="range"]:not(.knob-input):not(.fader-input):not(.master-slider-input)
     .effects-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
+/* ============================================================
+   NEW LAYOUT: TAB-BASED UI
+   ============================================================ */
+
+/* ---- HEADER: now stacks vertically (title row + LED row) ---- */
+header {
+    display: flex; flex-direction: column; gap: 10px;
+    padding: 16px 20px 10px;
+}
+.header-top {
+    display: flex; align-items: center; gap: 12px;
+}
+header h1 {
+    font-size: 1.8rem; font-weight: 800; letter-spacing: -0.03em;
+    white-space: nowrap; color: var(--text);
+    flex-shrink: 0;
+}
+header h1 span { color: var(--accent); }
+.header-top .conn-status { margin-left: auto; }
+
+/* Header LED bar — flex row: led bar + controls */
+.header-led {
+    display: flex; align-items: center; gap: 16px;
+    width: 100%; padding: 0;
+}
+.header-led .led-bar-3row {
+    flex: 1; min-width: 0;
+    padding: 6px 8px; gap: 3px;
+}
+.header-led .led-row { gap: 2px; }
+.header-led .led-zone {
+    height: 22px; min-width: 4px; max-width: 36px; flex: 1;
+    border-radius: 4px;
+    cursor: pointer;
+    min-height: 22px;
+}
+.header-led .led-zone.white-zone { height: 14px; min-height: 14px; }
+
+/* Controls inline with the LED bar */
+.header-led-controls {
+    display: flex; align-items: center; gap: 12px;
+    flex-shrink: 0;
+    padding: 4px 0;
+}
+.header-led-controls .master-bright-wrap {
+    flex: none; min-width: 100px; max-width: 180px; width: 130px;
+}
+.header-led-controls .master-bright-track-wrap {
+    height: 36px;
+}
+.header-led-controls .master-bright-slider { touch-action: none; }
+
+/* ---- TAB BAR ---- */
+.tab-bar {
+    display: flex; gap: 2px;
+    padding: 8px 20px 0;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    position: sticky; top: 62px; z-index: 80;
+}
+.tab-bar::-webkit-scrollbar { display: none; }
+.tab-btn {
+    flex-shrink: 0;
+    padding: 10px 20px;
+    background: transparent;
+    border: none; border-bottom: 3px solid transparent;
+    color: var(--text-dim);
+    font-size: 0.85rem; font-weight: 600;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+    touch-action: manipulation; user-select: none;
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    min-height: 44px;
+}
+.tab-btn:hover { color: var(--text); background: var(--surface2); }
+.tab-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+    background: var(--surface2);
+}
+
+/* ---- TAB CONTENT ---- */
+.tab-content {
+    padding: 14px 20px;
+    width: 100%; box-sizing: border-box;
+    overflow-x: hidden; overflow-y: auto;
+}
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ---- TAB PANEL WRAPPERS ---- */
+.effects-panels-wrap,
+.zones-panels-wrap,
+.midi-panels-wrap {
+    display: flex; flex-direction: column; gap: 14px;
+    width: 100%; min-width: 0;
+}
+.tab-panel { min-width: 0; }
+
+/* On wide screens the effects tab splits into side-by-side columns */
+@media (min-width: 900px) {
+    body { display: flex; flex-direction: column; min-height: 100dvh; }
+    header { position: relative; }
+
+    /* Override old 3-col grid — now just normal flow */
+    main.tab-content {
+        display: block;
+        padding: 14px 20px;
+        height: auto; overflow-x: hidden; overflow-y: auto;
+    }
+
+    .tab-bar { position: sticky; top: 0; }
+
+    .effects-panels-wrap {
+        flex-direction: row; align-items: flex-start;
+    }
+    .effects-panels-wrap .color-effects-panel { flex: 3; min-width: 0; }
+    .effects-panels-wrap .white-effects-panel { flex: 2; min-width: 0; }
+
+    .zones-panels-wrap {
+        flex-direction: row; align-items: flex-start;
+    }
+    .zones-panels-wrap .groups-panel { flex: 1; min-width: 0; }
+    .zones-panels-wrap .scenes-panel { flex: 1; min-width: 0; }
+
+    .midi-panels-wrap {
+        flex-direction: row; align-items: flex-start;
+    }
+    .midi-panels-wrap .midi-status-panel { flex: 1; min-width: 0; }
+    .midi-panels-wrap .midi-mapping-panel { flex: 2; min-width: 0; }
+
+    /* Effects split stays horizontal */
+    .effects-split-layout { flex-direction: row; }
+    .effects-ctrl-col { width: 50%; flex-shrink: 0; overflow-y: auto; }
+    .effects-ctrl-col .color-presets-block { max-height: none; flex: 1; width: 100%; max-width: none; }
+    .effects-right-col .effects-scroll { max-height: none; }
+}
+
+/* ---- MIDI STATUS PANEL ---- */
+.midi-status-row {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 8px;
+}
+.midi-dot {
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--text-muted); flex-shrink: 0;
+    transition: background 0.3s;
+}
+.midi-dot.connected {
+    background: var(--success);
+    box-shadow: 0 0 0 3px var(--success-dim);
+    animation: pulse 2s infinite;
+}
+#midiStatusText { font-size: 0.9rem; font-weight: 600; }
+.midi-last-event {
+    font-size: 0.75rem; color: var(--text-dim); font-family: monospace;
+    padding: 4px 8px; background: var(--surface3);
+    border-radius: var(--radius-xs); margin-bottom: 8px;
+    min-height: 24px;
+}
+.midi-mode-badge {
+    display: inline-block; padding: 3px 10px;
+    border-radius: 99px; font-size: 0.7rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    background: var(--surface3); color: var(--text-muted);
+    margin-bottom: 14px;
+}
+.midi-mode-badge.mode-reactive { background: var(--success-dim); color: var(--success); }
+.midi-mode-badge.mode-effect   { background: var(--accent-dim);   color: var(--accent); }
+.midi-mode-badge.mode-color    { background: var(--warn-dim);     color: var(--warn); }
+
+.midi-setup-info {
+    border-top: 1px solid var(--border-subtle);
+    padding-top: 12px; margin-top: 4px;
+}
+.midi-setup-title {
+    font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.07em; color: var(--text-dim); margin-bottom: 8px;
+}
+.midi-setup-steps {
+    padding-left: 18px; margin: 0;
+    display: flex; flex-direction: column; gap: 5px;
+    font-size: 0.8rem; color: var(--text-dim); line-height: 1.5;
+}
+.midi-setup-steps li b { color: var(--text); }
+
+/* ---- MIDI MAPPING PANEL ---- */
+.midi-mapping-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+@media (max-width: 600px) {
+    .midi-mapping-grid { grid-template-columns: 1fr; }
+}
+.midi-map-section { }
+.midi-map-heading {
+    font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.07em; color: var(--text-dim);
+    margin-bottom: 6px; padding-bottom: 4px;
+    border-bottom: 1px solid var(--border-subtle);
+}
+.midi-map-rows { display: flex; flex-direction: column; gap: 4px; }
+.midi-map-row {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 0.78rem; color: var(--text-dim);
+}
+.pad-label {
+    width: 22px; height: 22px; border-radius: 4px;
+    background: var(--surface3); border: 1px solid var(--border);
+    font-size: 0.65rem; font-weight: 700; color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+.pad-label.stop { background: var(--danger-dim); border-color: var(--danger); color: var(--danger); }
+.knob-label-pill {
+    font-size: 0.6rem; background: var(--surface2); border-color: var(--accent); color: var(--accent);
+}
+.midi-map-note {
+    font-size: 0.78rem; color: var(--text-dim); line-height: 1.55;
+    padding: 8px 10px; background: var(--surface2);
+    border-radius: var(--radius-xs); border: 1px solid var(--border-subtle);
+}
+
+/* ---- DEBUG TAB PANEL ---- */
+.debug-tab-panel .debug-status { margin-bottom: 10px; }
+.debug-tab-panel .debug-btns { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* ============================================================
+   END NEW LAYOUT STYLES
+   ============================================================ */
+
 /* ---- CTRL COL TITLE ---- */
 .ctrl-col-title {
     font-size: 1rem; font-weight: 700;
@@ -1223,4 +1456,12 @@ input[type="range"]:not(.knob-input):not(.fader-input):not(.master-slider-input)
     }
     .col-right .main-cols .panel { flex: 1; min-height: 0; overflow-y: auto; }
     .col-right .debug-panel { margin: 0; flex-shrink: 0; }
+
+    /* ---- New layout elements must not shrink in the fixed-height flex body ---- */
+    .tab-bar { flex-shrink: 0; position: relative; top: auto; }
+    main.tab-content {
+        flex: 1; min-height: 0;
+        overflow-x: hidden; overflow-y: auto; display: block;
+        height: auto; padding: 14px 20px;
+    }
 }

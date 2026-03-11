@@ -3,11 +3,15 @@ services:
     build: .
     container_name: yeesite-controller
     restart: unless-stopped
-    ports:
-      - "5003:5003"
+    # host networking is required for:
+    #   - mDNS multicast (Bonjour/DNS-SD) so iOS auto-discovers YeeSiteLights
+    #   - RTP-MIDI UDP ports 5004/5005 pairing handshake with iOS
+    # Web UI is accessible at http://<unraid-ip>:5003
+    network_mode: host
+    devices:
+      - /dev/snd:/dev/snd   # ALSA sequencer for raveloxmidi virtual MIDI port
     environment:
       - OLA_HOST=10.0.0.10
       - OLA_PORT=9090
       - DMX_UNIVERSE=1
       - WEB_PORT=5003
-    network_mode: bridge

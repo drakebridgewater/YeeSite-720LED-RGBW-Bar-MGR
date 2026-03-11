@@ -546,6 +546,57 @@ def color_bounce(color=(255, 100, 0), width=2):
                 vel = -4.0
 
 
+def midi_reactive(midi_state_ref):
+    """
+    Music-reactive effect driven by midi_handler.midi_state.
+
+    Reads zone colors and brightness values set by the MIDI callback thread
+    and renders them each frame, applying per-frame brightness decay so notes
+    fade out naturally after being released.
+
+    midi_state_ref is the shared dict from midi_handler.midi_state.
+    Instantiated by server.py when the first Note On arrives.
+    """
+    DECAY = 0.93        # brightness decay per frame (~1 s fade at 60 FPS)
+    FLASH_DECAY = 0.80  # faster flash decay (velocity impact)
+
+    while True:
+        frame = _blank()
+        zones = midi_state_ref.get("zones", [])
+        z_brightness = midi_state_ref.get("zone_brightness", [])
+        flash = midi_state_ref.get("flash_brightness", 0.0)
+
+        for col in range(COLUMNS):
+            bz = col_to_bottom_zone(col)
+            tz = col_to_top_zone(col)
+
+            bv = z_brightness[col] if col < len(z_brightness) else 0.0
+            effective = min(1.0, bv + flash * 0.25)
+
+            if col < len(zones):
+                base_r, base_g, base_b = zones[col]
+                r = int(base_r * effective)
+                g = int(base_g * effective)
+                b = int(base_b * effective)
+            else:
+                r = g = b = 0
+
+            frame["color"][bz] = (r, g, b)
+            frame["color"][tz] = (r, g, b)
+            # White middle row: spatially matched brightness, capped at 80% to
+            # avoid washing out the RGB colour visible underneath
+            frame["white"][col] = int(effective * 200)
+
+            # Decay zone brightness (note-off fade)
+            if col < len(z_brightness):
+                midi_state_ref["zone_brightness"][col] = bv * DECAY
+
+        # Decay global flash
+        midi_state_ref["flash_brightness"] = flash * FLASH_DECAY
+
+        yield frame
+
+
 def _rgb_to_hex(r, g, b):
     return f"#{r:02x}{g:02x}{b:02x}"
 

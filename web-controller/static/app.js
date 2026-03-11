@@ -309,16 +309,11 @@
         });
     }
 
-    function toggleZone(row, col, multi) {
+    function toggleZone(row, col) {
+        // Always toggle (add/remove) — tablet-friendly, no modifier keys needed
         const key = zoneKey(row, col);
-        if (multi) {
-            if (selected.has(key)) selected.delete(key);
-            else selected.add(key);
-        } else {
-            const wasOnly = selected.size === 1 && selected.has(key);
-            selected.clear();
-            if (!wasOnly) selected.add(key);
-        }
+        if (selected.has(key)) selected.delete(key);
+        else selected.add(key);
         lastClickedZone = key;
         updateSelectionUI();
     }
@@ -725,7 +720,7 @@
                 const row = el.dataset.row;
                 const col = parseInt(el.dataset.col);
                 if (e.shiftKey) rangeSelect(row, col);
-                else toggleZone(row, col, e.ctrlKey || e.metaKey);
+                else toggleZone(row, col);
             });
         });
     }
@@ -1395,6 +1390,21 @@
         updateLedBar(display);
     });
 
+    socket.on("midi_status", (data) => {
+        const dot = document.getElementById("midiDot");
+        const text = document.getElementById("midiStatusText");
+        const lastEvt = document.getElementById("midiLastEvent");
+        const badge = document.getElementById("midiModeBadge");
+        if (dot) dot.classList.toggle("connected", !!data.connected);
+        if (text) text.textContent = data.connected ? "Connected — YeeSiteLights" : "Waiting for MIDI…";
+        if (lastEvt && data.last_event) lastEvt.textContent = data.last_event;
+        if (badge) {
+            const mode = data.mode || "idle";
+            badge.textContent = mode === "idle" ? "" : mode;
+            badge.className = "midi-mode-badge" + (mode !== "idle" ? " mode-" + mode : "");
+        }
+    });
+
     // ---- SHORTCUTS OVERLAY ----
     const shortcutsOverlay = $("#shortcutsOverlay");
     const btnHelp = $("#btnHelp");
@@ -1477,6 +1487,24 @@
         if (key === "0") { e.preventDefault(); applyPreset(9); return; }
     });
 
+    // ---- TAB SWITCHING ----
+    function switchTab(name) {
+        document.querySelectorAll(".tab-btn").forEach((btn) => {
+            btn.classList.toggle("active", btn.dataset.tab === name);
+        });
+        document.querySelectorAll(".tab-panel").forEach((panel) => {
+            panel.classList.toggle("active", panel.id === "tab-" + name);
+        });
+        localStorage.setItem("yeesite_active_tab", name);
+    }
+
+    document.querySelectorAll(".tab-btn").forEach((btn) => {
+        btn.addEventListener("click", () => switchTab(btn.dataset.tab));
+    });
+
+    const savedTab = localStorage.getItem("yeesite_active_tab");
+    if (savedTab) switchTab(savedTab);
+
     // ---- INIT ----
     buildLedBar();
     buildPresets();
@@ -1488,21 +1516,23 @@
 
 
     // ---- DEBUG PANEL ----
-    const debugToggle = $("#debugToggle");
-    const debugBody = $("#debugBody");
+    const debugToggle = $("#debugToggle");   // null in new layout (debug is a tab now)
+    const debugBody = $("#debugBody");        // null in new layout
     const debugStatus = $("#debugStatus");
-    const debugChevron = $("#debugChevron");
+    const debugChevron = $("#debugChevron"); // null in new layout
     const dbgWhite = $("#dbgWhite");
     const dbgRed = $("#dbgRed");
     const dbgBlue = $("#dbgBlue");
     const dbgResume = $("#dbgResume");
     let debugOpen = false;
 
-    debugToggle.addEventListener("click", () => {
-        debugOpen = !debugOpen;
-        debugBody.style.display = debugOpen ? "flex" : "none";
-        debugChevron.textContent = debugOpen ? "\u25B2" : "\u25BC";
-    });
+    if (debugToggle) {
+        debugToggle.addEventListener("click", () => {
+            debugOpen = !debugOpen;
+            if (debugBody) debugBody.style.display = debugOpen ? "flex" : "none";
+            if (debugChevron) debugChevron.textContent = debugOpen ? "\u25B2" : "\u25BC";
+        });
+    }
 
     async function doFreeze(r, g, b, w) {
         debugStatus.textContent = "Sending...";

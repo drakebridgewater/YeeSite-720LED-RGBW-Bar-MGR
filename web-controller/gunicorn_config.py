@@ -15,8 +15,12 @@ worker_class = "gthread"
 
 
 def post_fork(server, worker):
-    """Start animation loop in worker process only (after fork)."""
-    from server import animation_loop
+    """Start animation loop and MIDI handler in worker process only (after fork)."""
+    from server import animation_loop, midi_handler
 
     t = threading.Thread(target=animation_loop, daemon=True)
     t.start()
+
+    # Start MIDI in a thread so port discovery retries don't block gunicorn startup
+    mt = threading.Thread(target=midi_handler.start, daemon=True)
+    mt.start()

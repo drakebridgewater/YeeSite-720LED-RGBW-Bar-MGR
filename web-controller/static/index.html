@@ -8,25 +8,299 @@
 </head>
 <body>
     <header>
-        <h1><span>YeeSite</span> Controller</h1>
+        <div class="header-top">
+            <h1><span>YeeSite</span> Controller</h1>
+            <div class="header-master">
+                <button class="hm-btn hm-blackout" id="btnBlackout">Blackout <kbd>B</kbd></button>
+                <button class="hm-btn hm-stop" id="btnStop">Stop <kbd>Esc</kbd></button>
+                <button class="hm-btn hm-help" id="btnHelp" title="Keyboard Shortcuts">?</button>
+            </div>
+            <div class="conn-status">
+                <span class="status-dot" id="statusDot"></span>
+                <span id="statusText">Connecting...</span>
+            </div>
+        </div>
         <div class="header-led">
             <div class="led-bar-3row" id="ledBar">
                 <div class="led-row" id="rowTop"></div>
                 <div class="led-row" id="rowMid"></div>
                 <div class="led-row" id="rowBot"></div>
             </div>
-        </div>
-        <div class="header-master">
-            <button class="hm-btn hm-blackout" id="btnBlackout">Blackout <kbd>B</kbd></button>
-            <button class="hm-btn hm-stop" id="btnStop">Stop <kbd>Esc</kbd></button>
-            <button class="hm-btn hm-help" id="btnHelp" title="Keyboard Shortcuts">?</button>
-        </div>
-        <div class="conn-status">
-            <span class="status-dot" id="statusDot"></span>
-            <span id="statusText">Connecting...</span>
+            <div class="header-led-controls">
+                <div class="knob-wrap" data-knob="masterFade">
+                    <div class="knob knob-sm" id="knobMasterFade">
+                        <div class="knob-indicator"></div>
+                    </div>
+                    <div class="knob-label">Fade</div>
+                    <div class="knob-value" id="fadeVal">0s</div>
+                    <input type="range" id="sliderFade" class="knob-input" min="0" max="50" value="0">
+                </div>
+                <div class="master-bright-wrap">
+                    <div class="master-bright-val" id="brightVal">100%</div>
+                    <div class="master-bright-track-wrap">
+                        <div class="master-bright-fill" id="brightFill"></div>
+                        <input type="range" id="sliderBright" class="master-bright-slider"
+                               min="0" max="100" value="100">
+                    </div>
+                    <div class="master-bright-label">Bright</div>
+                </div>
+                <div class="knob-wrap" data-knob="rgbDim">
+                    <div class="knob knob-sm" id="knobRgbDim">
+                        <div class="knob-indicator"></div>
+                    </div>
+                    <div class="knob-label">RGB Dim</div>
+                    <div class="knob-value" id="rgbDimVal">100%</div>
+                    <input type="range" id="sliderRgbDim" min="0" max="100" value="100" class="knob-input">
+                </div>
+                <div class="knob-wrap" data-knob="whiteDim">
+                    <div class="knob knob-sm" id="knobWhiteDim">
+                        <div class="knob-indicator"></div>
+                    </div>
+                    <div class="knob-label">White Dim</div>
+                    <div class="knob-value" id="whiteDimVal">100%</div>
+                    <input type="range" id="sliderWhiteDim" min="0" max="100" value="100" class="knob-input">
+                </div>
+            </div>
         </div>
     </header>
 
+    <!-- Tab bar -->
+    <nav class="tab-bar">
+        <button class="tab-btn active" data-tab="effects">Color &amp; White</button>
+        <button class="tab-btn" data-tab="zones">Zones &amp; Scenes</button>
+        <button class="tab-btn" data-tab="midi">MIDI / New</button>
+        <button class="tab-btn" data-tab="debug">Debug</button>
+    </nav>
+
+    <!-- Tab content -->
+    <main class="tab-content">
+
+        <!-- Tab 1: Color & White Effects -->
+        <div class="tab-panel active" id="tab-effects">
+            <div class="effects-panels-wrap">
+                <div class="panel color-effects-panel">
+                    <div class="effects-split-layout">
+                        <div class="effects-ctrl-col">
+                            <div class="ctrl-col-title">Color Effects</div>
+                            <div class="effect-controls-knobs">
+                                <div class="knob-wrap" data-knob="effectSpeed">
+                                    <div class="knob knob-sm" id="knobEffectSpeed">
+                                        <div class="knob-indicator"></div>
+                                    </div>
+                                    <div class="knob-value" id="speedVal">1.0×</div>
+                                    <input type="range" id="sliderSpeed" min="1" max="1000" value="100" class="knob-input">
+                                </div>
+                                <div class="effect-strobe-block">
+                                    <div class="knob-wrap" data-knob="colorStrobeRate">
+                                        <div class="knob knob-sm" id="knobColorStrobeRate">
+                                            <div class="knob-indicator"></div>
+                                        </div>
+                                        <div class="knob-label">Strobe Hz</div>
+                                        <div class="knob-value" id="colorStrobeRateVal">8</div>
+                                        <input type="range" id="sliderColorStrobeRate" min="2" max="20" value="8" class="knob-input">
+                                    </div>
+                                    <button class="strobe-link-btn" id="btnStrobeLink" title="Link color and white strobe rates">🔗</button>
+                                </div>
+                                <button class="effect-reset-btn" id="effectReset" title="Reset all to defaults">↺ Reset</button>
+                            </div>
+                            <div class="color-sliders-row">
+                                <div class="color-selected-block">
+                                    <div class="color-preview" id="colorPreview"></div>
+                                </div>
+                                <div class="color-faders rgb-faders">
+                                    <div class="color-fader red" data-channel="r">
+                                        <div class="fader-label">R</div>
+                                        <div class="fader-slot">
+                                            <div class="fader-fill" id="faderFillR"></div>
+                                            <input type="range" id="sliderR" class="fader-input" min="0" max="255" value="0">
+                                        </div>
+                                        <div class="fader-val" id="rVal">0</div>
+                                    </div>
+                                    <div class="color-fader green" data-channel="g">
+                                        <div class="fader-label">G</div>
+                                        <div class="fader-slot">
+                                            <div class="fader-fill" id="faderFillG"></div>
+                                            <input type="range" id="sliderG" class="fader-input" min="0" max="255" value="0">
+                                        </div>
+                                        <div class="fader-val" id="gVal">0</div>
+                                    </div>
+                                    <div class="color-fader blue" data-channel="b">
+                                        <div class="fader-label">B</div>
+                                        <div class="fader-slot">
+                                            <div class="fader-fill" id="faderFillB"></div>
+                                            <input type="range" id="sliderB" class="fader-input" min="0" max="255" value="0">
+                                        </div>
+                                        <div class="fader-val" id="bVal">0</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="color-presets-block">
+                                <input type="color" class="color-picker-hidden" id="colorPicker" value="#000000">
+                                <div class="color-presets" id="colorPresets"></div>
+                                <div class="custom-presets" id="customPresets"></div>
+                                <button class="custom-preset-add" id="btnAddPreset" title="Pick and add color">+</button>
+                            </div>
+                        </div>
+                        <div class="effects-right-col">
+                            <div class="effect-config" id="effectConfig"></div>
+                            <div class="effects-scroll">
+                                <div class="effects-grid" id="effectsGrid"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel white-effects-panel">
+                    <div class="effects-split-layout">
+                        <div class="effects-ctrl-col">
+                            <div class="ctrl-col-title">White Effects</div>
+                            <div class="effect-controls-knobs">
+                                <div class="knob-wrap" data-knob="whiteSpeed">
+                                    <div class="knob knob-sm" id="knobWhiteSpeed">
+                                        <div class="knob-indicator"></div>
+                                    </div>
+                                    <div class="knob-value" id="wSpeedVal">1.0×</div>
+                                    <input type="range" id="sliderWSpeed" min="1" max="1000" value="100" class="knob-input">
+                                </div>
+                                <div class="knob-wrap" data-knob="whiteStrobeRate">
+                                    <div class="knob knob-sm" id="knobWhiteStrobeRate">
+                                        <div class="knob-indicator"></div>
+                                    </div>
+                                    <div class="knob-label">Strobe Hz</div>
+                                    <div class="knob-value" id="whiteStrobeRateVal">8</div>
+                                    <input type="range" id="sliderWhiteStrobeRate" min="2" max="20" value="8" class="knob-input">
+                                </div>
+                                <button class="effect-reset-btn" id="whiteEffectReset" title="Reset all to defaults">↺ Reset</button>
+                            </div>
+                            <div class="white-ctrl-row">
+                                <div class="white-preview" id="whitePreview"></div>
+                                <div class="color-fader white" data-channel="w">
+                                    <div class="fader-label">W</div>
+                                    <div class="fader-slot">
+                                        <div class="fader-fill" id="faderFillW"></div>
+                                        <input type="range" id="sliderW" class="fader-input" min="0" max="255" value="0">
+                                    </div>
+                                    <div class="fader-val" id="wVal">0</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="effects-right-col">
+                            <div class="effects-scroll">
+                                <div class="effects-grid white-effects-grid" id="whiteEffectsGrid"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div><!-- /#tab-effects -->
+
+        <!-- Tab 2: Zones & Scenes -->
+        <div class="tab-panel" id="tab-zones">
+            <div class="zones-panels-wrap">
+                <div class="panel groups-panel" id="groupsPanel">
+                    <div class="panel-title">Zone Groups</div>
+                    <div class="groups-empty" id="groupsEmpty">Tap zones above to select, then "Save Group" to create a group with its own controls.</div>
+                    <div id="groupsList"></div>
+                </div>
+                <div class="panel scenes-panel">
+                    <div class="panel-title">Scenes <button class="scene-save-btn" id="btnSaveScene" title="Save current state as scene">+ Save Scene</button></div>
+                    <div class="scenes-row" id="scenesRow">
+                        <div class="scenes-empty" id="scenesEmpty">Save a scene to capture the full lighting state for one-tap recall.</div>
+                    </div>
+                </div>
+            </div>
+        </div><!-- /#tab-zones -->
+
+        <!-- Tab 3: MIDI / New Functionality -->
+        <div class="tab-panel" id="tab-midi">
+            <div class="midi-panels-wrap">
+                <div class="panel midi-status-panel">
+                    <div class="panel-title">MIDI Connection</div>
+                    <div class="midi-status-row">
+                        <span class="midi-dot" id="midiDot"></span>
+                        <span id="midiStatusText">Waiting for MIDI…</span>
+                    </div>
+                    <div class="midi-last-event" id="midiLastEvent"></div>
+                    <div class="midi-mode-badge" id="midiModeBadge"></div>
+                    <div class="midi-setup-info">
+                        <div class="midi-setup-title">iOS Setup</div>
+                        <ol class="midi-setup-steps">
+                            <li>On iPad: <b>Settings → MIDI Network Session</b></li>
+                            <li>Under Directory, tap <b>YeeSiteLights</b> → Connect</li>
+                            <li>Open GarageBand — MPK Mini notes now control lights</li>
+                            <li>If not found: tap + and enter this server's IP, port 5004</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="panel midi-mapping-panel">
+                    <div class="panel-title">MPK Mini Mapping</div>
+                    <div class="midi-mapping-grid">
+                        <div class="midi-map-section">
+                            <div class="midi-map-heading">Pads — Bank A (triggers effects)</div>
+                            <div class="midi-map-rows">
+                                <div class="midi-map-row"><span class="pad-label">1</span><span>Rainbow Chase</span></div>
+                                <div class="midi-map-row"><span class="pad-label">2</span><span>Police</span></div>
+                                <div class="midi-map-row"><span class="pad-label">3</span><span>Fire</span></div>
+                                <div class="midi-map-row"><span class="pad-label">4</span><span>Breathe</span></div>
+                                <div class="midi-map-row"><span class="pad-label">5</span><span>Sparkle</span></div>
+                                <div class="midi-map-row"><span class="pad-label">6</span><span>Knight Rider</span></div>
+                                <div class="midi-map-row"><span class="pad-label">7</span><span>Strobe</span></div>
+                                <div class="midi-map-row"><span class="pad-label stop">8</span><span>Stop All</span></div>
+                            </div>
+                        </div>
+                        <div class="midi-map-section">
+                            <div class="midi-map-heading">Pads — Bank B (color presets)</div>
+                            <div class="midi-map-rows">
+                                <div class="midi-map-row"><span class="pad-label" style="background:#ff0000">1</span><span>Red</span></div>
+                                <div class="midi-map-row"><span class="pad-label" style="background:#00ff00">2</span><span>Green</span></div>
+                                <div class="midi-map-row"><span class="pad-label" style="background:#0000ff">3</span><span>Blue</span></div>
+                                <div class="midi-map-row"><span class="pad-label" style="background:#ffffff;color:#000">4</span><span>White</span></div>
+                                <div class="midi-map-row"><span class="pad-label" style="background:#00ffff;color:#000">5</span><span>Cyan</span></div>
+                                <div class="midi-map-row"><span class="pad-label" style="background:#ffff00;color:#000">6</span><span>Yellow</span></div>
+                                <div class="midi-map-row"><span class="pad-label" style="background:#8000ff">7</span><span>Purple</span></div>
+                                <div class="midi-map-row"><span class="pad-label" style="background:#222">8</span><span>All Off</span></div>
+                            </div>
+                        </div>
+                        <div class="midi-map-section">
+                            <div class="midi-map-heading">Knobs (K1–K8)</div>
+                            <div class="midi-map-rows">
+                                <div class="midi-map-row"><span class="pad-label knob-label-pill">K1</span><span>Master Brightness</span></div>
+                                <div class="midi-map-row"><span class="pad-label knob-label-pill">K2</span><span>Effect Speed</span></div>
+                                <div class="midi-map-row"><span class="pad-label knob-label-pill">K3</span><span>RGB Dimmer</span></div>
+                                <div class="midi-map-row"><span class="pad-label knob-label-pill">K4</span><span>White Dimmer</span></div>
+                                <div class="midi-map-row"><span class="pad-label knob-label-pill">K5</span><span>Hue (reactive mode)</span></div>
+                                <div class="midi-map-row"><span class="pad-label knob-label-pill">K6</span><span>Saturation</span></div>
+                            </div>
+                        </div>
+                        <div class="midi-map-section">
+                            <div class="midi-map-heading">Piano Keys — Auto Reactive</div>
+                            <div class="midi-map-note">
+                                Play any key: pitch → hue colour, octave → horizontal zone position, velocity → brightness burst. Chords blend colours. Notes fade on release.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div><!-- /#tab-midi -->
+
+        <!-- Tab 4: Debug -->
+        <div class="tab-panel" id="tab-debug">
+            <div class="panel debug-tab-panel">
+                <div class="panel-title">DMX Debug</div>
+                <div class="debug-status" id="debugStatus">Live</div>
+                <div class="debug-btns">
+                    <button class="debug-btn" id="dbgWhite">Freeze + All White</button>
+                    <button class="debug-btn" id="dbgRed">Freeze + All Red</button>
+                    <button class="debug-btn" id="dbgBlue">Freeze + All Blue</button>
+                    <button class="debug-btn debug-btn-resume" id="dbgResume" disabled>Resume</button>
+                </div>
+            </div>
+        </div><!-- /#tab-debug -->
+
+    </main><!-- /.tab-content -->
+
+    <!-- Shortcuts modal -->
     <div class="shortcuts-overlay" id="shortcutsOverlay">
         <div class="shortcuts-modal">
             <div class="shortcuts-header">
@@ -63,196 +337,6 @@
             </div>
         </div>
     </div>
-
-    <main>
-        <div class="col-master">
-            <div class="panel master-controls-panel">
-                <div class="panel-title">Master</div>
-                <div class="master-vertical-layout">
-                    <div class="master-fade-knob">
-                        <div class="knob-wrap" data-knob="masterFade">
-                            <div class="knob knob-sm" id="knobMasterFade">
-                                <div class="knob-indicator"></div>
-                            </div>
-                            <div class="knob-label">Fade</div>
-                            <div class="knob-value" id="fadeVal">0s</div>
-                            <input type="range" id="sliderFade" class="knob-input" min="0" max="50" value="0">
-                        </div>
-                    </div>
-                    <div class="master-bright-wrap">
-                        <div class="master-bright-val" id="brightVal">100%</div>
-                        <div class="master-bright-track-wrap">
-                            <div class="master-bright-fill" id="brightFill"></div>
-                            <input type="range" id="sliderBright" class="master-bright-slider"
-                                   min="0" max="100" value="100">
-                        </div>
-                        <div class="master-bright-label">Bright</div>
-                    </div>
-                </div>
-            </div>
-        </div><!-- /.col-master -->
-
-        <div class="col-effects">
-            <div class="panel color-effects-panel">
-                <div class="effects-split-layout">
-                    <div class="effects-ctrl-col">
-                        <div class="ctrl-col-title">Color Effects</div>
-                        <div class="effect-controls-knobs">
-                            <div class="knob-wrap" data-knob="effectSpeed">
-                                <div class="knob knob-sm" id="knobEffectSpeed">
-                                    <div class="knob-indicator"></div>
-                                </div>
-                                <div class="knob-value" id="speedVal">1.0×</div>
-                                <input type="range" id="sliderSpeed" min="1" max="1000" value="100" class="knob-input">
-                            </div>
-                            <div class="knob-wrap" data-knob="rgbDim">
-                                <div class="knob knob-sm" id="knobRgbDim">
-                                    <div class="knob-indicator"></div>
-                                </div>
-                                <div class="knob-label">RGB Dim</div>
-                                <div class="knob-value" id="rgbDimVal">100%</div>
-                                <input type="range" id="sliderRgbDim" min="0" max="100" value="100" class="knob-input">
-                            </div>
-                            <div class="effect-strobe-block">
-                                <div class="knob-wrap" data-knob="colorStrobeRate">
-                                    <div class="knob knob-sm" id="knobColorStrobeRate">
-                                        <div class="knob-indicator"></div>
-                                    </div>
-                                    <div class="knob-label">Strobe Hz</div>
-                                    <div class="knob-value" id="colorStrobeRateVal">8</div>
-                                    <input type="range" id="sliderColorStrobeRate" min="2" max="20" value="8" class="knob-input">
-                                </div>
-                                <button class="strobe-link-btn" id="btnStrobeLink" title="Link color and white strobe rates">🔗</button>
-                            </div>
-                            <button class="effect-reset-btn" id="effectReset" title="Reset all to defaults">↺ Reset</button>
-                        </div>
-                        <div class="color-sliders-row">
-                            <div class="color-selected-block">
-                                <div class="color-preview" id="colorPreview"></div>
-                            </div>
-                            <div class="color-faders rgb-faders">
-                                <div class="color-fader red" data-channel="r">
-                                    <div class="fader-label">R</div>
-                                    <div class="fader-slot">
-                                        <div class="fader-fill" id="faderFillR"></div>
-                                        <input type="range" id="sliderR" class="fader-input" min="0" max="255" value="0">
-                                    </div>
-                                    <div class="fader-val" id="rVal">0</div>
-                                </div>
-                                <div class="color-fader green" data-channel="g">
-                                    <div class="fader-label">G</div>
-                                    <div class="fader-slot">
-                                        <div class="fader-fill" id="faderFillG"></div>
-                                        <input type="range" id="sliderG" class="fader-input" min="0" max="255" value="0">
-                                    </div>
-                                    <div class="fader-val" id="gVal">0</div>
-                                </div>
-                                <div class="color-fader blue" data-channel="b">
-                                    <div class="fader-label">B</div>
-                                    <div class="fader-slot">
-                                        <div class="fader-fill" id="faderFillB"></div>
-                                        <input type="range" id="sliderB" class="fader-input" min="0" max="255" value="0">
-                                    </div>
-                                    <div class="fader-val" id="bVal">0</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="color-presets-block">
-                            <input type="color" class="color-picker-hidden" id="colorPicker" value="#000000">
-                            <div class="color-presets" id="colorPresets"></div>
-                            <div class="custom-presets" id="customPresets"></div>
-                            <button class="custom-preset-add" id="btnAddPreset" title="Pick and add color">+</button>
-                        </div>
-                    </div>
-                    <div class="effects-right-col">
-                        <div class="effect-config" id="effectConfig"></div>
-                        <div class="effects-scroll">
-                            <div class="effects-grid" id="effectsGrid"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="panel white-effects-panel">
-                <div class="effects-split-layout">
-                    <div class="effects-ctrl-col">
-                        <div class="ctrl-col-title">White Effects</div>
-                        <div class="effect-controls-knobs">
-                            <div class="knob-wrap" data-knob="whiteSpeed">
-                                <div class="knob knob-sm" id="knobWhiteSpeed">
-                                    <div class="knob-indicator"></div>
-                                </div>
-                                <div class="knob-value" id="wSpeedVal">1.0×</div>
-                                <input type="range" id="sliderWSpeed" min="1" max="1000" value="100" class="knob-input">
-                            </div>
-                            <div class="knob-wrap" data-knob="whiteDim">
-                                <div class="knob knob-sm" id="knobWhiteDim">
-                                    <div class="knob-indicator"></div>
-                                </div>
-                                <div class="knob-label">White Dim</div>
-                                <div class="knob-value" id="whiteDimVal">100%</div>
-                                <input type="range" id="sliderWhiteDim" min="0" max="100" value="100" class="knob-input">
-                            </div>
-                            <div class="knob-wrap" data-knob="whiteStrobeRate">
-                                <div class="knob knob-sm" id="knobWhiteStrobeRate">
-                                    <div class="knob-indicator"></div>
-                                </div>
-                                <div class="knob-label">Strobe Hz</div>
-                                <div class="knob-value" id="whiteStrobeRateVal">8</div>
-                                <input type="range" id="sliderWhiteStrobeRate" min="2" max="20" value="8" class="knob-input">
-                            </div>
-                            <button class="effect-reset-btn" id="whiteEffectReset" title="Reset all to defaults">↺ Reset</button>
-                        </div>
-                        <div class="white-ctrl-row">
-                            <div class="white-preview" id="whitePreview"></div>
-                            <div class="color-fader white" data-channel="w">
-                                <div class="fader-label">W</div>
-                                <div class="fader-slot">
-                                    <div class="fader-fill" id="faderFillW"></div>
-                                    <input type="range" id="sliderW" class="fader-input" min="0" max="255" value="0">
-                                </div>
-                                <div class="fader-val" id="wVal">0</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="effects-right-col">
-                        <div class="effects-scroll">
-                            <div class="effects-grid white-effects-grid" id="whiteEffectsGrid"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div><!-- /.col-effects -->
-
-        <div class="col-right">
-        <div class="main-cols">
-            <div class="panel groups-panel" id="groupsPanel">
-                <div class="panel-title">Zone Groups</div>
-                <div class="groups-empty" id="groupsEmpty">Click zones to select, then "Save Group" to create a group with its own controls.</div>
-                <div id="groupsList"></div>
-            </div>
-            <div class="panel scenes-panel">
-                <div class="panel-title">Scenes <button class="scene-save-btn" id="btnSaveScene" title="Save current state as scene">+ Save Scene</button></div>
-                <div class="scenes-row" id="scenesRow">
-                    <div class="scenes-empty" id="scenesEmpty">Save a scene to capture the full lighting state for one-tap recall.</div>
-                </div>
-            </div>
-        </div>
-        <div class="debug-panel" id="debugPanel">
-            <div class="debug-header" id="debugToggle">&#x1F6E0; DMX Debug <span class="debug-chevron" id="debugChevron">&#x25BC;</span></div>
-            <div class="debug-body" id="debugBody">
-                <div class="debug-status" id="debugStatus">Live</div>
-                <div class="debug-btns">
-                    <button class="debug-btn" id="dbgWhite">Freeze + All White</button>
-                    <button class="debug-btn" id="dbgRed">Freeze + All Red</button>
-                    <button class="debug-btn" id="dbgBlue">Freeze + All Blue</button>
-                    <button class="debug-btn debug-btn-resume" id="dbgResume" disabled>Resume</button>
-                </div>
-            </div>
-        </div>
-        </div><!-- /.col-right -->
-
-    </main>
 
     <div class="selection-toolbar" id="selToolbar">
         <span id="selCount">0 selected</span>

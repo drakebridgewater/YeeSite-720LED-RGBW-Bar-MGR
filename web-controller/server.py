@@ -17,7 +17,8 @@ from config import (
     TOTAL_CHANNELS, COLUMNS, FPS, FRAME_TIME, WEB_HOST, WEB_PORT,
     color_zone_channels, white_zone_channel, col_to_bottom_zone, col_to_top_zone,
 )
-from effects import EFFECTS, WHITE_EFFECTS
+from effects import EFFECTS, WHITE_EFFECTS, midi_reactive
+from midi_handler import MidiHandler, midi_state as _midi_state
 
 app = Flask(__name__, static_folder="static")
 app.config["SECRET_KEY"] = "yeesite-ctrl"
@@ -169,7 +170,7 @@ def start_fade(target_dmx, duration):
 
 
 def animation_loop():
-    global fade_from, fade_to
+    global fade_from, fade_to, current_effect, effect_gen
     last_display = 0.0
     while True:
         if animation_frozen:
@@ -186,6 +187,11 @@ def animation_loop():
         with effect_lock:
             gen = effect_gen
             spd = effect_speed
+            # Auto-start midi_reactive when notes arrive and nothing else is playing
+            if gen is None and _midi_state.get("mode") == "reactive":
+                current_effect = "midi_reactive"
+                effect_gen = midi_reactive(_midi_state)
+                gen = effect_gen
 
         with white_effect_lock:
             wgen = white_effect_gen
@@ -220,6 +226,11 @@ def animation_loop():
         if now - last_display >= DISPLAY_INTERVAL:
             push_to_ola()
             socketio.emit("frame", get_display_state())
+            socketio.emit("midi_status", {
+                "connected": _midi_state.get("midi_connected", False),
+                "mode": _midi_state.get("mode", "idle"),
+                "last_event": _midi_state.get("last_event"),
+            })
             last_display = now
 
         fastest = max(spd if gen else 1.0, wspd if wgen else 1.0)
@@ -330,6 +341,103 @@ class YeeSiteBarLamp(Lamp):
 
 
 yeesite_bar = YeeSiteBarLamp()
+
+
+# ---- MIDI HANDLER ----
+
+midi_handler = MidiHandler(port_name_substring="raveloxmidi")
+
+
+def _start_midi_reactive():
+    global current_effect, effect_gen
+    with effect_lock:
+        current_effect = "midi_reactive"
+        effect_gen = midi_reactive(_midi_state)
+
+
+def _midi_pad_trigger(effect_name):
+    global current_effect, effect_gen
+    if effect_name in EFFECTS:
+        kwargs = build_effect_kwargs(effect_name, {})
+        with effect_lock:
+            current_effect = effect_name
+            effect_gen = EFFECTS[effect_name]["fn"](**kwargs)
+    elif effect_name == "midi_reactive":
+        _start_midi_reactive()
+
+
+def _midi_color_preset(r, g, b, w):
+    global current_effect, effect_gen, current_white_effect, white_effect_gen
+    with effect_lock:
+        current_effect = None
+        effect_gen = None
+    with white_effect_lock:
+        current_white_effect = None
+        white_effect_gen = None
+    set_all(r, g, b, w)
+
+
+def _midi_stop():
+    global current_effect, effect_gen, current_white_effect, white_effect_gen
+    _midi_state["mode"] = "idle"
+    with effect_lock:
+        current_effect = None
+        effect_gen = None
+    with white_effect_lock:
+        current_white_effect = None
+        white_effect_gen = None
+    set_all(0, 0, 0, 0)
+
+
+def _midi_set_brightness(v):
+    global brightness
+    brightness = max(0.0, min(1.0, v))
+
+
+def _midi_set_speed(v):
+    global effect_speed
+    effect_speed = max(0.1, min(5.0, v))
+
+
+def _midi_set_rgb_dimmer(v):
+    global rgb_dimmer
+    rgb_dimmer = max(0.0, min(1.0, v))
+
+
+def _midi_set_white_dimmer(v):
+    global white_dimmer
+    white_dimmer = max(0.0, min(1.0, v))
+
+
+def _midi_set_color_strobe_rate(hz):
+    global color_strobe_rate
+    color_strobe_rate = max(1.0, min(30.0, hz))
+
+
+def _midi_set_white_strobe_rate(hz):
+    global white_strobe_rate
+    white_strobe_rate = max(1.0, min(30.0, hz))
+
+
+def _midi_set_manual_color(r, g, b):
+    global current_effect, effect_gen
+    _midi_state["mode"] = "color"
+    with effect_lock:
+        current_effect = None
+        effect_gen = None
+    set_all(r, g, b, 0)
+
+
+midi_handler.on_pad_trigger = _midi_pad_trigger
+midi_handler.on_color_preset = _midi_color_preset
+midi_handler.on_cc_brightness = _midi_set_brightness
+midi_handler.on_cc_speed = _midi_set_speed
+midi_handler.on_cc_rgb_dimmer = _midi_set_rgb_dimmer
+midi_handler.on_cc_white_dimmer = _midi_set_white_dimmer
+midi_handler.on_cc_color_strobe_rate = _midi_set_color_strobe_rate
+midi_handler.on_cc_white_strobe_rate = _midi_set_white_strobe_rate
+midi_handler.on_cc_manual_color = _midi_set_manual_color
+midi_handler.on_stop = _midi_stop
 
 
 # ---- LAMP API (Home Assistant compatible) ----
