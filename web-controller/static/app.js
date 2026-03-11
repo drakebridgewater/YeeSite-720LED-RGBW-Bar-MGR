@@ -198,6 +198,30 @@
         $("#brightFill").style.transform = "scaleY(" + val / 100 + ")";
         socket.emit("set_brightness", { value: val / 100 });
     });
+
+    // Custom touch handler for vertical brightness slider (iOS Safari doesn't handle
+    // writing-mode:vertical-lr touch events on range inputs)
+    const brightTrack = $(".master-bright-track-wrap");
+    if (brightTrack) {
+        function handleBrightTouch(e) {
+            e.preventDefault();
+            const touch = e.touches[0] || e.changedTouches[0];
+            const rect = brightTrack.getBoundingClientRect();
+            let pct;
+            if (rect.height >= rect.width) {
+                // Vertical orientation: top=100%, bottom=0%
+                pct = 1 - Math.max(0, Math.min(1, (touch.clientY - rect.top) / rect.height));
+            } else {
+                // Horizontal fallback: left=0%, right=100%
+                pct = Math.max(0, Math.min(1, (touch.clientX - rect.left) / rect.width));
+            }
+            const val = Math.round(pct * 100);
+            sliderBright.value = val;
+            sliderBright.dispatchEvent(new Event("input", { bubbles: true }));
+        }
+        brightTrack.addEventListener("touchstart", handleBrightTouch, { passive: false });
+        brightTrack.addEventListener("touchmove", handleBrightTouch, { passive: false });
+    }
     sliderFade.addEventListener("input", () => {
         fadeTime = parseInt(sliderFade.value) / 10;
         fadeValEl.textContent = fadeTime.toFixed(1) + "s";
@@ -1079,6 +1103,9 @@
         updateEffectButtons();
         renderEffectConfig();
         socket.emit("set_effect", { name: "" });
+        // Restore static color so LEDs don't freeze on last animation frame
+        const r = parseInt(sliderR.value), g = parseInt(sliderG.value), b = parseInt(sliderB.value);
+        socket.emit("set_color", { r, g, b, w: parseInt(sliderW.value), fade_time: fadeTime });
     }
 
     function setWhiteEffect(name) {
