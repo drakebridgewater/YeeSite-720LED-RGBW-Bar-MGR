@@ -31,12 +31,7 @@
     const btnStop = $("#btnStop");
     const statusDot = $("#statusDot");
     const statusText = $("#statusText");
-    const selToolbar = $("#selToolbar");
-    const selCount = $("#selCount");
-    const selApply = $("#selApply");
-    const selGroup = $("#selGroup");
-    const selAll = $("#selAll");
-    const selClear = $("#selClear");
+    const zoneAddFab = $("#zoneAddFab");
     const groupsList = $("#groupsList");
     const groupsEmpty = $("#groupsEmpty");
     const effectConfig = $("#effectConfig");
@@ -300,9 +295,7 @@
 
     function updateSelectionUI() {
         const n = selected.size;
-        selToolbar.classList.toggle("visible", n > 0);
-        selCount.textContent = n + " selected";
-
+        zoneAddFab.classList.toggle("visible", n > 0);
         document.querySelectorAll(".led-zone").forEach((el) => {
             const key = zoneKey(el.dataset.row, el.dataset.col);
             el.classList.toggle("selected", selected.has(key));
@@ -352,9 +345,17 @@
         localStorage.setItem("yeesite_groups", JSON.stringify(groups));
     }
 
+    function nextGroupName() {
+        let n = parseInt(localStorage.getItem("yeesite_group_counter") || "0") + 1;
+        localStorage.setItem("yeesite_group_counter", n);
+        return `Group ${n}`;
+    }
+
     function createGroup(name, zones) {
         const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-        groups.push({ id, name, zones: Array.from(zones), r: 0, g: 0, b: 0, w: 0, dim: 100 });
+        const r = parseInt(sliderR.value), g = parseInt(sliderG.value),
+              b = parseInt(sliderB.value), w = parseInt(sliderW.value);
+        groups.push({ id, name, zones: Array.from(zones), r, g, b, w, dim: 100, currentFx: "none" });
         saveGroups();
         renderGroups();
     }
@@ -385,28 +386,6 @@
         });
     }
 
-    function toggleGroupPower(group, offBtn) {
-        group.isOff = !(group.isOff ?? false);
-        if (group.isOff) {
-            const colorZones = [];
-            const whiteZones = [];
-            for (const key of group.zones) {
-                const z = zoneKeyToServer(key);
-                if (!z) continue;
-                if (z.type === "color") colorZones.push(z.idx);
-                else whiteZones.push(z.idx);
-            }
-            socket.emit("set_zones", {
-                color_zones: colorZones,
-                white_zones: whiteZones,
-                r: 0, g: 0, b: 0, w: 0,
-            });
-        } else {
-            applyGroupColor(group);
-        }
-        offBtn.textContent = group.isOff ? "\u23FC" : "\u23FB";
-        offBtn.title = group.isOff ? "Turn on" : "Turn off";
-    }
 
     function highlightGroupZones(group) {
         selected.clear();
@@ -414,85 +393,198 @@
         updateSelectionUI();
     }
 
+    // ---- PER-GROUP EFFECTS ----
+    const groupEffects = new Map(); // id → intervalId
+
+    function hsvToRgb(h, s, v) {
+        h = h % 360; const c = v * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = v - c;
+        let r, g, b;
+        if (h < 60)       { r=c; g=x; b=0; }
+        else if (h < 120) { r=x; g=c; b=0; }
+        else if (h < 180) { r=0; g=c; b=x; }
+        else if (h < 240) { r=0; g=x; b=c; }
+        else if (h < 300) { r=x; g=0; b=c; }
+        else              { r=c; g=0; b=x; }
+        return [Math.round((r+m)*255), Math.round((g+m)*255), Math.round((b+m)*255)];
+    }
+
+    function groupZonePayload(g, r, g2, b, w) {
+        const colorZones = [], whiteZones = [];
+        for (const key of g.zones) {
+            const z = zoneKeyToServer(key);
+            if (!z) continue;
+            if (z.type === "color") colorZones.push(z.idx);
+            else whiteZones.push(z.idx);
+        }
+        return { color_zones: colorZones, white_zones: whiteZones, r, g: g2, b, w };
+    }
+
+    function stopGroupEffect(id) {
+        const fx = groupEffects.get(id);
+        if (fx != null) { clearInterval(fx); groupEffects.delete(id); }
+    }
+
+    function startGroupEffect(g, fxName) {
+        stopGroupEffect(g.id);
+        g.currentFx = fxName;
+        saveGroups();
+        if (fxName === "none") { applyGroupColor(g); return; }
+        let t = 0;
+        const id = setInterval(() => {
+            const d = (g.dim ?? 100) / 100;
+            let r = g.r, gv = g.g, b = g.b, w = g.w;
+            if (fxName === "breathe") {
+                t += 0.06;
+                const k = (Math.sin(t) + 1) / 2;
+                r = Math.round(r * k * d); gv = Math.round(gv * k * d);
+                b = Math.round(b * k * d); w = Math.round(w * k * d);
+                socket.emit("set_zones", groupZonePayload(g, r, gv, b, w));
+            } else if (fxName === "strobe") {
+                t++;
+                const on = (t % 2 === 0);
+                const k = on ? d : 0;
+                socket.emit("set_zones", groupZonePayload(g, Math.round(r*k), Math.round(gv*k), Math.round(b*k), Math.round(w*k)));
+            } else if (fxName === "rainbow") {
+                t = (t + 3) % 360;
+                const [rr, rg, rb] = hsvToRgb(t, 1, 1);
+                socket.emit("set_zones", groupZonePayload(g, Math.round(rr*d), Math.round(rg*d), Math.round(rb*d), 0));
+            }
+        }, fxName === "strobe" ? 80 : 50);
+        groupEffects.set(g.id, id);
+    }
+
+    function turnOffAllGroups() {
+        groups.forEach((g) => {
+            stopGroupEffect(g.id);
+            g.isOff = true;
+        });
+        saveGroups();
+        document.querySelectorAll(".group-card").forEach((card) => {
+            const btn = card.querySelector(".goff");
+            if (btn) { btn.textContent = "\u23FC"; btn.title = "Turn on"; }
+        });
+    }
+
     function renderGroups() {
         groupsEmpty.style.display = groups.length ? "none" : "block";
         groupsList.innerHTML = "";
         groups.forEach((g) => {
             g.isOff = g.isOff ?? false;
-            const card = document.createElement("div");
-            card.className = "group-card";
-            const hexVal = rgbToHex(g.r, g.g, g.b);
+            g.currentFx = g.currentFx ?? "none";
             const dim = g.dim ?? 100;
+            const fxActive = g.currentFx !== "none";
             const offLabel = g.isOff ? "\u23FC" : "\u23FB";
             const offTitle = g.isOff ? "Turn on" : "Turn off";
+
+            const card = document.createElement("div");
+            card.className = "group-card";
+            card.dataset.id = g.id;
             card.innerHTML = `
                 <div class="group-header">
-                    <span class="group-name">${esc(g.name)}</span>
-                    <span class="group-zone-count">${g.zones.length}z</span>
+                    <input class="group-name-input" type="text" value="${esc(g.name)}" aria-label="Group name">
                     <div class="group-actions">
-                        <button class="group-btn off" data-action="off" title="${offTitle}">${offLabel}</button>
-                        <button class="group-btn highlight" data-action="highlight" title="Show zones">&#9678;</button>
-                        <button class="group-btn delete" data-action="delete" title="Delete">&times;</button>
+                        <button class="group-btn highlight" title="Highlight zones">&#9678;</button>
+                        <button class="group-btn goff" title="${offTitle}">${offLabel}</button>
+                        <button class="group-btn delete" title="Delete">&times;</button>
                     </div>
                 </div>
-                <div class="group-quick">
-                    <input type="color" class="group-color-picker" value="${hexVal}">
-                    <div class="group-mini gs-w">
-                        <label>W <span class="gm-val">${g.w}</span></label>
-                        <input type="range" min="0" max="255" value="${g.w}" data-ch="w">
-                    </div>
-                    <div class="group-mini gs-dim">
-                        <label>Dim <span class="gm-val">${dim}%</span></label>
-                        <input type="range" min="0" max="100" value="${dim}" data-ch="dim">
+                <div class="group-sliders">
+                    <div class="gsl-row"><span class="gsl-lbl r">R</span><input type="range" class="gsl-r" min="0" max="255" value="${g.r}"><span class="gsl-val">${g.r}</span></div>
+                    <div class="gsl-row"><span class="gsl-lbl g">G</span><input type="range" class="gsl-g" min="0" max="255" value="${g.g}"><span class="gsl-val">${g.g}</span></div>
+                    <div class="gsl-row"><span class="gsl-lbl b">B</span><input type="range" class="gsl-b" min="0" max="255" value="${g.b}"><span class="gsl-val">${g.b}</span></div>
+                    <div class="gsl-row"><span class="gsl-lbl w">W</span><input type="range" class="gsl-w" min="0" max="255" value="${g.w}"><span class="gsl-val">${g.w}</span></div>
+                    <div class="gsl-row"><span class="gsl-lbl dim">Dim</span><input type="range" class="gsl-dim" min="0" max="100" value="${dim}"><span class="gsl-val">${dim}%</span></div>
+                </div>
+                <div class="group-footer">
+                    <span class="group-zone-badge">${g.zones.length} zone${g.zones.length === 1 ? "" : "s"}</span>
+                    <div class="group-fx-wrap">
+                        <button class="group-effect-btn${fxActive ? " fx-active" : ""}">${fxActive ? g.currentFx : "+ Effect"}</button>
+                        <div class="group-effect-menu" hidden>
+                            <button data-fx="breathe"${g.currentFx==="breathe"?" class='active'":""}>Breathe</button>
+                            <button data-fx="strobe"${g.currentFx==="strobe"?" class='active'":""}>Strobe</button>
+                            <button data-fx="rainbow"${g.currentFx==="rainbow"?" class='active'":""}>Rainbow</button>
+                            <button data-fx="none"${g.currentFx==="none"?" class='active'":""}>Off</button>
+                        </div>
                     </div>
                 </div>
             `;
 
-            const offBtn = card.querySelector('[data-action="off"]');
-            card.querySelector('[data-action="delete"]').addEventListener("click", () => deleteGroup(g.id));
-            card.querySelector('[data-action="highlight"]').addEventListener("click", () => highlightGroupZones(g));
-            offBtn.addEventListener("click", () => toggleGroupPower(g, offBtn));
+            const nameInput = card.querySelector(".group-name-input");
+            const offBtn = card.querySelector(".goff");
+            const fxBtn = card.querySelector(".group-effect-btn");
+            const fxMenu = card.querySelector(".group-effect-menu");
 
-            const picker = card.querySelector(".group-color-picker");
-            const wSlider = card.querySelector('[data-ch="w"]');
-            const wVal = card.querySelector('.gs-w .gm-val');
-            const dimSlider = card.querySelector('[data-ch="dim"]');
-            const dimValEl = card.querySelector('.gs-dim .gm-val');
-            setupSliderWheel(wSlider, 5);
-            setupSliderWheel(dimSlider, 2);
+            nameInput.addEventListener("change", () => { g.name = nameInput.value.trim() || g.name; saveGroups(); });
 
+            card.querySelector(".highlight").addEventListener("click", () => highlightGroupZones(g));
+            card.querySelector(".delete").addEventListener("click", () => { stopGroupEffect(g.id); deleteGroup(g.id); });
+
+            offBtn.addEventListener("click", () => {
+                g.isOff = !(g.isOff ?? false);
+                if (g.isOff) {
+                    stopGroupEffect(g.id);
+                    socket.emit("set_zones", groupZonePayload(g, 0, 0, 0, 0));
+                } else {
+                    startGroupEffect(g, g.currentFx);
+                }
+                offBtn.textContent = g.isOff ? "\u23FC" : "\u23FB";
+                offBtn.title = g.isOff ? "Turn on" : "Turn off";
+                saveGroups();
+            });
+
+            // Effect menu toggle
+            fxBtn.addEventListener("click", (e) => { e.stopPropagation(); fxMenu.hidden = !fxMenu.hidden; });
+            fxMenu.querySelectorAll("[data-fx]").forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    fxMenu.hidden = true;
+                    g.isOff = false;
+                    offBtn.textContent = "\u23FB"; offBtn.title = "Turn off";
+                    startGroupEffect(g, btn.dataset.fx);
+                    const active = btn.dataset.fx !== "none";
+                    fxBtn.textContent = active ? btn.dataset.fx : "+ Effect";
+                    fxBtn.classList.toggle("fx-active", active);
+                    fxMenu.querySelectorAll("[data-fx]").forEach((b) => b.classList.toggle("active", b === btn));
+                });
+            });
+            document.addEventListener("click", () => { fxMenu.hidden = true; }, { once: false, capture: false });
+
+            // RGB/W/Dim sliders
             let groupThrottle = null;
             function throttledApply() {
                 saveGroups();
                 g.isOff = false;
-                offBtn.textContent = "\u23FB";
-                offBtn.title = "Turn off";
+                offBtn.textContent = "\u23FB"; offBtn.title = "Turn off";
                 if (groupThrottle) return;
-                groupThrottle = setTimeout(() => {
-                    groupThrottle = null;
-                    applyGroupColor(g);
-                }, 30);
+                groupThrottle = setTimeout(() => { groupThrottle = null; applyGroupColor(g); }, 30);
             }
 
-            picker.addEventListener("input", () => {
-                const c = hexToRgb(picker.value);
-                g.r = c.r; g.g = c.g; g.b = c.b;
-                throttledApply();
+            ["r","g","b","w"].forEach((ch) => {
+                const sl = card.querySelector(`.gsl-${ch}`);
+                const vl = sl.closest(".gsl-row").querySelector(".gsl-val");
+                setupSliderWheel(sl, 5);
+                sl.addEventListener("input", () => {
+                    g[ch] = parseInt(sl.value);
+                    vl.textContent = g[ch];
+                    if (g.currentFx === "none") throttledApply();
+                    else saveGroups(); // effect loop uses g.r/g/b/w live
+                });
             });
-
-            wSlider.addEventListener("input", () => {
-                g.w = parseInt(wSlider.value);
-                wVal.textContent = g.w;
-                throttledApply();
-            });
-
-            dimSlider.addEventListener("input", () => {
-                g.dim = parseInt(dimSlider.value);
-                dimValEl.textContent = g.dim + "%";
-                throttledApply();
+            const dimSl = card.querySelector(".gsl-dim");
+            const dimVl = dimSl.closest(".gsl-row").querySelector(".gsl-val");
+            setupSliderWheel(dimSl, 2);
+            dimSl.addEventListener("input", () => {
+                g.dim = parseInt(dimSl.value);
+                dimVl.textContent = g.dim + "%";
+                if (g.currentFx === "none") throttledApply();
+                else saveGroups();
             });
 
             groupsList.appendChild(card);
+
+            // Resume effect if it was running before re-render
+            if (!g.isOff && g.currentFx !== "none" && !groupEffects.has(g.id)) {
+                startGroupEffect(g, g.currentFx);
+            }
         });
     }
 
@@ -1062,6 +1154,7 @@
             renderEffectConfig();
             socket.emit("set_zones", selectionToServerPayload(r, g, b, parseInt(sliderW.value)));
         } else {
+            turnOffAllGroups();
             activeEffect = "solid";
             activeEffectColors = { color: rgbToHex(r, g, b) };
             activeEffectDimmers = {};
@@ -1079,6 +1172,7 @@
     }
 
     function setEffect(name) {
+        turnOffAllGroups();
         activeEffect = name;
         activeEffectColors = {};
         activeEffectDimmers = {};
@@ -1115,6 +1209,7 @@
     }
 
     function setWhiteEffect(name) {
+        turnOffAllGroups();
         activeWhiteEffect = name;
         updateWhiteEffectButtons();
         const payload = { name };
@@ -1135,6 +1230,7 @@
     }
 
     function stopAll() {
+        turnOffAllGroups();
         activeEffect = null;
         activeWhiteEffect = null;
         activeEffectColors = {};
@@ -1157,25 +1253,13 @@
         socket.emit("stop", {});
     }
 
-    // ---- SELECTION TOOLBAR ----
-    selApply.addEventListener("click", () => sendColor());
-    selClear.addEventListener("click", () => {
+    // ---- ZONE ADD FAB ----
+    zoneAddFab.addEventListener("click", () => {
+        if (selected.size === 0) return;
+        createGroup(nextGroupName(), selected);
         selected.clear();
         updateSelectionUI();
-    });
-    selAll.addEventListener("click", () => {
-        for (let c = 0; c < COLUMNS; c++) {
-            selected.add(zoneKey("top", c));
-            selected.add(zoneKey("mid", c));
-            selected.add(zoneKey("bot", c));
-        }
-        updateSelectionUI();
-    });
-    selGroup.addEventListener("click", () => {
-        if (selected.size === 0) return;
-        const name = prompt("Group name:", `Group ${groups.length + 1}`);
-        if (!name) return;
-        createGroup(name, selected);
+        switchTab("zones");
     });
 
     function fmtSpeed(v) { return v < 1 ? v.toFixed(2) + "\u00d7" : v.toFixed(1) + "\u00d7"; }
@@ -1470,11 +1554,12 @@
             return;
         }
         if (lower === "d") { e.preventDefault(); selected.clear(); updateSelectionUI(); return; }
-        if (key === "Enter" && selected.size > 0) { e.preventDefault(); sendColor(); return; }
         if (lower === "g" && selected.size > 0) {
             e.preventDefault();
-            const name = prompt("Group name:", `Group ${groups.length + 1}`);
-            if (name) createGroup(name, selected);
+            createGroup(nextGroupName(), selected);
+            selected.clear();
+            updateSelectionUI();
+            switchTab("zones");
             return;
         }
 

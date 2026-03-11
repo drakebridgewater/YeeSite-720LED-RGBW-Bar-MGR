@@ -61,6 +61,7 @@
                     <input type="range" id="sliderWhiteDim" min="0" max="100" value="100" class="knob-input">
                 </div>
             </div>
+            <button class="zone-add-fab" id="zoneAddFab" title="Save selection as group" aria-label="Create zone group">+</button>
         </div>
     </header>
 
@@ -199,7 +200,7 @@
             <div class="zones-panels-wrap">
                 <div class="panel groups-panel" id="groupsPanel">
                     <div class="panel-title">Zone Groups</div>
-                    <div class="groups-empty" id="groupsEmpty">Tap zones above to select, then "Save Group" to create a group with its own controls.</div>
+                    <div class="groups-empty" id="groupsEmpty">Tap zones in the live view, then press <strong>+</strong> to save a group with its own RGB controls.</div>
                     <div id="groupsList"></div>
                 </div>
                 <div class="panel scenes-panel">
@@ -336,14 +337,6 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    <div class="selection-toolbar" id="selToolbar">
-        <span id="selCount">0 selected</span>
-        <button class="sel-btn sel-apply" id="selApply">Apply Color</button>
-        <button class="sel-btn sel-group" id="selGroup">Save Group</button>
-        <button class="sel-btn sel-all" id="selAll">Select All</button>
-        <button class="sel-btn sel-clear" id="selClear">Clear</button>
     </div>
 
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
