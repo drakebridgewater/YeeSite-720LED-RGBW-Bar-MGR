@@ -99,6 +99,12 @@ def set_all(r, g, b, w=0):
         set_column(col, r, g, b, w)
 
 
+def set_rgb_all(r, g, b):
+    """Set all RGB (color) zones only. Does not touch white zones."""
+    for z in range(NUM_COLOR_ZONES):
+        set_color_zone(z, r, g, b)
+
+
 def apply_frame(frame):
     """Apply effect frame to color zones, scaled by rgb_dimmer."""
     d = rgb_dimmer
@@ -217,7 +223,7 @@ def animation_loop():
             last_display = now
 
         fastest = max(spd if gen else 1.0, wspd if wgen else 1.0)
-        time.sleep(FRAME_TIME / max(0.1, min(fastest, 8.0)))
+        time.sleep(FRAME_TIME / max(0.01, min(fastest, 8.0)))
 
 
 # ---- ROUTES ----
@@ -320,7 +326,7 @@ class YeeSiteBarLamp(Lamp):
 
     def _set_speed(self, val):
         global effect_speed
-        effect_speed = max(0.1, min(10.0, float(val)))
+        effect_speed = max(0.01, min(10.0, float(val)))
 
 
 yeesite_bar = YeeSiteBarLamp()
@@ -504,28 +510,21 @@ def api_blackout():
 
 @socketio.on("set_color")
 def ws_set_color(data):
-    global current_effect, effect_gen, current_white_effect, white_effect_gen
+    """Set RGB color zones only. White zones/effects are never touched here."""
+    global current_effect, effect_gen
     with effect_lock:
         current_effect = None
         effect_gen = None
-    with white_effect_lock:
-        current_white_effect = None
-        white_effect_gen = None
     fade_time = float(data.get("fade_time", 0))
-    r, g, b, w = int(data.get("r", 0)), int(data.get("g", 0)), int(data.get("b", 0)), int(data.get("w", 0))
+    r, g, b = int(data.get("r", 0)), int(data.get("g", 0)), int(data.get("b", 0))
     if fade_time > 0:
         target = list(dmx)
-        for col in range(COLUMNS):
-            bz = col_to_bottom_zone(col)
-            rc, gc, bc = color_zone_channels(bz)
+        for z in range(NUM_COLOR_ZONES):
+            rc, gc, bc = color_zone_channels(z)
             target[rc], target[gc], target[bc] = r, g, b
-            tz = col_to_top_zone(col)
-            rc2, gc2, bc2 = color_zone_channels(tz)
-            target[rc2], target[gc2], target[bc2] = r, g, b
-            target[white_zone_channel(col)] = w
         start_fade(target, fade_time)
     else:
-        set_all(r, g, b, w)
+        set_rgb_all(r, g, b)
 
 
 @socketio.on("set_zones")
@@ -600,7 +599,7 @@ def ws_set_blackout(data):
 @socketio.on("set_speed")
 def ws_set_speed(data):
     global effect_speed
-    effect_speed = max(0.1, min(10.0, float(data.get("value", 1.0))))
+    effect_speed = max(0.01, min(10.0, float(data.get("value", 1.0))))
 
 @socketio.on("set_white_effect")
 def ws_set_white_effect(data):
@@ -640,7 +639,7 @@ def ws_set_white_dimmer(data):
 @socketio.on("set_white_speed")
 def ws_set_white_speed(data):
     global white_effect_speed
-    white_effect_speed = max(0.1, min(10.0, float(data.get("value", 1.0))))
+    white_effect_speed = max(0.01, min(10.0, float(data.get("value", 1.0))))
 
 @socketio.on("set_color_strobe_rate")
 def ws_set_color_strobe_rate(data):

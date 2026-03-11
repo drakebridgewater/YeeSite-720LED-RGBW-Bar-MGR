@@ -71,8 +71,8 @@
         whiteDim: { slider: sliderWhiteDim, max: 100 },
         colorStrobeRate: { slider: sliderColorStrobeRate, min: 2, max: 20 },
         whiteStrobeRate: { slider: sliderWhiteStrobeRate, min: 2, max: 20 },
-        effectSpeed: { slider: sliderSpeed, min: 10, max: 1000 },
-        whiteSpeed: { slider: sliderWSpeed, min: 10, max: 1000 },
+        effectSpeed: { slider: sliderSpeed, min: 1, max: 1000 },
+        whiteSpeed: { slider: sliderWSpeed, min: 1, max: 1000 },
     };
 
     function syncKnobIndicator(key) {
@@ -563,10 +563,13 @@
             updateEffectButtons();
             renderEffectConfig();
             socket.emit("set_effect", { name: scene.effect, colors: activeEffectColors });
-        } else if (scene.whiteEffect && whiteEffectsMeta[scene.whiteEffect]) {
-            setWhiteEffect(scene.whiteEffect);
         } else {
             sendColor();
+        }
+        if (scene.whiteEffect && whiteEffectsMeta[scene.whiteEffect]) {
+            setWhiteEffect(scene.whiteEffect);
+        } else {
+            sendWhiteLevel();
         }
     }
 
@@ -647,6 +650,7 @@
                 sliderB.value = p.b; sliderW.value = p.w;
                 updateColorDisplay();
                 sendColor();
+                sendWhiteLevel();
             });
             customPresetsEl.appendChild(btn);
         });
@@ -747,6 +751,7 @@
                 sliderW.value = p.w;
                 updateColorDisplay();
                 sendColor();
+                sendWhiteLevel();
             });
             presetsContainer.appendChild(btn);
         });
@@ -1044,11 +1049,13 @@
 
 
     // ---- COMMUNICATION ----
+    // Color and white sections are fully independent:
+    // sendColor() → only RGB channels (set_effect solid / set_zones color zones)
+    // sendWhiteLevel() → only white channels (set_white_effect w_solid)
     function sendColor() {
         const r = parseInt(sliderR.value);
         const g = parseInt(sliderG.value);
         const b = parseInt(sliderB.value);
-        const w = parseInt(sliderW.value);
 
         if (selected.size > 0) {
             activeEffect = null;
@@ -1058,18 +1065,22 @@
             updateEffectButtons();
             updateWhiteEffectButtons();
             renderEffectConfig();
-            socket.emit("set_zones", selectionToServerPayload(r, g, b, w));
+            socket.emit("set_zones", selectionToServerPayload(r, g, b, parseInt(sliderW.value)));
         } else {
             activeEffect = "solid";
-            activeWhiteEffect = "w_solid";
             activeEffectColors = { color: rgbToHex(r, g, b) };
             activeEffectDimmers = {};
             updateEffectButtons();
-            updateWhiteEffectButtons();
             renderEffectConfig();
             socket.emit("set_effect", { name: "solid", colors: activeEffectColors });
-            socket.emit("set_white_effect", { name: "w_solid", peak: w });
         }
+    }
+
+    function sendWhiteLevel() {
+        const w = parseInt(sliderW.value);
+        activeWhiteEffect = "w_solid";
+        updateWhiteEffectButtons();
+        socket.emit("set_white_effect", { name: "w_solid", peak: w });
     }
 
     function setEffect(name) {
@@ -1103,9 +1114,9 @@
         updateEffectButtons();
         renderEffectConfig();
         socket.emit("set_effect", { name: "" });
-        // Restore static color so LEDs don't freeze on last animation frame
+        // Restore static RGB color so LEDs don't freeze on last animation frame
         const r = parseInt(sliderR.value), g = parseInt(sliderG.value), b = parseInt(sliderB.value);
-        socket.emit("set_color", { r, g, b, w: parseInt(sliderW.value), fade_time: fadeTime });
+        socket.emit("set_color", { r, g, b, fade_time: fadeTime });
     }
 
     function setWhiteEffect(name) {
@@ -1172,17 +1183,19 @@
         createGroup(name, selected);
     });
 
+    function fmtSpeed(v) { return v < 1 ? v.toFixed(2) + "\u00d7" : v.toFixed(1) + "\u00d7"; }
+
     // ---- SPEED ----
     function sendSpeed() {
         const raw = parseInt(sliderSpeed.value);
         const spd = raw / 100;
-        speedVal.textContent = spd.toFixed(1) + "\u00d7";
+        speedVal.textContent = fmtSpeed(spd);
         socket.emit("set_speed", { value: spd });
     }
     function setSpeedUI(val) {
-        const clamped = Math.max(0.1, Math.min(10.0, val));
+        const clamped = Math.max(0.01, Math.min(10.0, val));
         sliderSpeed.value = Math.round(clamped * 100);
-        speedVal.textContent = clamped.toFixed(1) + "\u00d7";
+        speedVal.textContent = fmtSpeed(clamped);
         socket.emit("set_speed", { value: clamped });
     }
     sliderSpeed.addEventListener("input", sendSpeed);
@@ -1201,13 +1214,13 @@
     function sendWhiteSpeed() {
         const raw = parseInt(sliderWSpeed.value);
         const spd = raw / 100;
-        wSpeedVal.textContent = spd.toFixed(1) + "\u00d7";
+        wSpeedVal.textContent = fmtSpeed(spd);
         socket.emit("set_white_speed", { value: spd });
     }
     function setWhiteSpeedUI(val) {
-        const clamped = Math.max(0.1, Math.min(10.0, val));
+        const clamped = Math.max(0.01, Math.min(10.0, val));
         sliderWSpeed.value = Math.round(clamped * 100);
-        wSpeedVal.textContent = clamped.toFixed(1) + "\u00d7";
+        wSpeedVal.textContent = fmtSpeed(clamped);
         socket.emit("set_white_speed", { value: clamped });
     }
     sliderWSpeed.addEventListener("input", sendWhiteSpeed);
@@ -1264,7 +1277,13 @@
     sliderR.addEventListener("input", onColorSliderInput);
     sliderG.addEventListener("input", onColorSliderInput);
     sliderB.addEventListener("input", onColorSliderInput);
-    sliderW.addEventListener("input", onColorSliderInput);
+    // W slider controls white section independently — never calls sendColor()
+    let whiteSliderThrottle = null;
+    sliderW.addEventListener("input", () => {
+        updateColorDisplay();
+        if (whiteSliderThrottle) return;
+        whiteSliderThrottle = setTimeout(() => { whiteSliderThrottle = null; sendWhiteLevel(); }, 30);
+    });
 
     colorPicker.addEventListener("input", () => {
         const c = hexToRgb(colorPicker.value);
@@ -1341,12 +1360,12 @@
                 }
                 if (state.effect_speed != null) {
                     sliderSpeed.value = Math.round(state.effect_speed * 100);
-                    speedVal.textContent = state.effect_speed.toFixed(1) + "\u00d7";
+                    speedVal.textContent = fmtSpeed(state.effect_speed);
                     syncKnobIndicator("effectSpeed");
                 }
                 if (state.white_effect_speed != null) {
                     sliderWSpeed.value = Math.round(state.white_effect_speed * 100);
-                    wSpeedVal.textContent = state.white_effect_speed.toFixed(1) + "\u00d7";
+                    wSpeedVal.textContent = fmtSpeed(state.white_effect_speed);
                     syncKnobIndicator("whiteSpeed");
                 }
                 if (state.rgb_dimmer != null) {
@@ -1400,6 +1419,7 @@
         sliderW.value = p.w;
         updateColorDisplay();
         sendColor();
+        sendWhiteLevel();
     }
 
     function adjustBrightness(delta) {
