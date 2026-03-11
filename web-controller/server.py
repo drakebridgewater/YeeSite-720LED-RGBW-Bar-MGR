@@ -54,6 +54,7 @@ class Lamp:
 dmx = [0] * TOTAL_CHANNELS
 brightness = 1.0
 blackout = False
+animation_frozen = False   # debug: pause animation loop + OLA pushes
 current_effect = None
 effect_gen = None
 effect_speed = 1.0
@@ -165,6 +166,17 @@ def animation_loop():
     global fade_from, fade_to
     last_display = 0.0
     while True:
+        if animation_frozen:
+            # Keep pushing current DMX to OLA so it doesn't time out,
+            # but don't advance any effects.
+            now = time.monotonic()
+            if now - last_display >= DISPLAY_INTERVAL:
+                push_to_ola()
+                socketio.emit("frame", get_display_state())
+                last_display = now
+            time.sleep(FRAME_TIME)
+            continue
+
         with effect_lock:
             gen = effect_gen
             spd = effect_speed
@@ -185,22 +197,18 @@ def animation_loop():
                     fade_to = None
 
         if gen is not None:
-            steps = max(1, int(spd))
-            for _ in range(steps):
-                try:
-                    frame = next(gen)
-                    apply_frame(frame)
-                except StopIteration:
-                    break
+            try:
+                frame = next(gen)
+                apply_frame(frame)
+            except StopIteration:
+                pass
 
         if wgen is not None:
-            wsteps = max(1, int(wspd))
-            for _ in range(wsteps):
-                try:
-                    wframe = next(wgen)
-                    apply_white_frame(wframe)
-                except StopIteration:
-                    break
+            try:
+                wframe = next(wgen)
+                apply_white_frame(wframe)
+            except StopIteration:
+                pass
 
         now = time.monotonic()
         if now - last_display >= DISPLAY_INTERVAL:
@@ -209,7 +217,7 @@ def animation_loop():
             last_display = now
 
         fastest = max(spd if gen else 1.0, wspd if wgen else 1.0)
-        time.sleep(FRAME_TIME / max(0.1, min(fastest, 3.0)))
+        time.sleep(FRAME_TIME / max(0.1, min(fastest, 8.0)))
 
 
 # ---- ROUTES ----
@@ -523,6 +531,13 @@ def ws_set_color(data):
 @socketio.on("set_zones")
 def ws_set_zones(data):
     """Set specific zones. data = {color_zones: [idx,...], white_zones: [idx,...], r, g, b, w}"""
+    global current_effect, effect_gen, current_white_effect, white_effect_gen
+    with effect_lock:
+        current_effect = None
+        effect_gen = None
+    with white_effect_lock:
+        current_white_effect = None
+        white_effect_gen = None
     r = int(data.get("r", 0))
     g = int(data.get("g", 0))
     b = int(data.get("b", 0))
@@ -596,6 +611,10 @@ def ws_set_white_effect(data):
             current_white_effect = name
             if name == "w_strobe":
                 white_effect_gen = WHITE_EFFECTS[name]["fn"](peak=255, rate=white_strobe_rate)
+            elif name == "w_solid":
+                peak = int(data.get("peak", 255))
+                peak = max(0, min(255, peak))
+                white_effect_gen = WHITE_EFFECTS[name]["fn"](peak=peak)
             else:
                 white_effect_gen = WHITE_EFFECTS[name]["fn"]()
 
@@ -635,6 +654,52 @@ def ws_set_white_strobe_rate(data):
     global white_strobe_rate
     white_strobe_rate = max(1.0, min(30.0, float(data.get("value", 8))))
     _restart_strobe_effect_if_needed()
+
+@app.route("/api/debug/freeze", methods=["POST"])
+def api_debug_freeze():
+    """Pause animation loop, set DMX directly, push to OLA once. Debug use."""
+    global animation_frozen, current_effect, effect_gen, current_white_effect, white_effect_gen
+    data = request.json or {}
+    r = int(data.get("r", 255))
+    g = int(data.get("g", 255))
+    b = int(data.get("b", 255))
+    w = int(data.get("w", 255))
+
+    # Stop effects first
+    with effect_lock:
+        current_effect = None
+        effect_gen = None
+    with white_effect_lock:
+        current_white_effect = None
+        white_effect_gen = None
+
+    # Pause the animation loop
+    animation_frozen = True
+    time.sleep(0.1)  # let the loop notice the freeze flag
+
+    # Set DMX directly and push once
+    set_all(r, g, b, w)
+    t0 = time.monotonic()
+    try:
+        values = [max(0, min(255, int(v * brightness))) for v in dmx]
+        csv = ",".join(str(v) for v in values)
+        resp = requests.post(f"{OLA_URL}/set_dmx", data={"u": DMX_UNIVERSE, "d": csv}, timeout=1.0)
+        ola_ok = resp.status_code == 200
+        ola_ms = round((time.monotonic() - t0) * 1000)
+    except Exception:
+        ola_ok = False
+        ola_ms = round((time.monotonic() - t0) * 1000)
+
+    return jsonify({"ok": True, "frozen": True, "ola_ok": ola_ok, "ola_ms": ola_ms, "r": r, "g": g, "b": b, "w": w})
+
+
+@app.route("/api/debug/unfreeze", methods=["POST"])
+def api_debug_unfreeze():
+    """Resume animation loop."""
+    global animation_frozen
+    animation_frozen = False
+    return jsonify({"ok": True, "frozen": False})
+
 
 @socketio.on("stop")
 def ws_stop(_data=None):

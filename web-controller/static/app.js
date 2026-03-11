@@ -66,6 +66,7 @@
 
     // ---- KNOBS ----
     const KNOB_CONFIG = {
+        masterFade: { slider: sliderFade, min: 0, max: 50 },
         rgbDim: { slider: sliderRgbDim, max: 100 },
         whiteDim: { slider: sliderWhiteDim, max: 100 },
         colorStrobeRate: { slider: sliderColorStrobeRate, min: 2, max: 20 },
@@ -109,33 +110,56 @@
             setVal(e.deltaY > 0 ? -1 : 1);
         }, { passive: false });
 
+        function startDrag(clientY) {
+            startY = clientY;
+            startVal = parseInt(cfg.slider.value);
+            lastVal = startVal;
+        }
+        function onMove(clientY) {
+            const min = cfg.min ?? 0;
+            const dy = startY - clientY;
+            const step = Math.round(dy / 3);
+            if (step !== 0) {
+                startY = clientY;
+                lastVal = Math.max(min, Math.min(cfg.max, lastVal + step));
+                cfg.slider.value = lastVal;
+                cfg.slider.dispatchEvent(new Event("input", { bubbles: true }));
+                syncKnobIndicator(key);
+            }
+        }
+
         let startY = 0, startVal = 0, lastVal = 0;
         knob.addEventListener("mousedown", (e) => {
             e.preventDefault();
-            startY = e.clientY;
-            startVal = parseInt(cfg.slider.value);
-            lastVal = startVal;
-            const onMove = (ev) => {
-                const dy = startY - ev.clientY;
-                const step = Math.round(dy / 3);
-                if (step !== 0) {
-                    startY = ev.clientY;
-                    lastVal = Math.max(0, Math.min(cfg.max, lastVal + step));
-                    cfg.slider.value = lastVal;
-                    cfg.slider.dispatchEvent(new Event("input", { bubbles: true }));
-                    syncKnobIndicator(key);
-                }
+            startDrag(e.clientY);
+            const onMouseMove = (ev) => onMove(ev.clientY);
+            const onMouseUp = () => {
+                document.removeEventListener("mousemove", onMouseMove);
+                document.removeEventListener("mouseup", onMouseUp);
             };
-            const onUp = () => {
-                document.removeEventListener("mousemove", onMove);
-                document.removeEventListener("mouseup", onUp);
-            };
-            document.addEventListener("mousemove", onMove);
-            document.addEventListener("mouseup", onUp);
+            document.addEventListener("mousemove", onMouseMove);
+            document.addEventListener("mouseup", onMouseUp);
         });
+
+        knob.addEventListener("touchstart", (e) => {
+            e.preventDefault();
+            startDrag(e.touches[0].clientY);
+            const onTouchMove = (ev) => {
+                ev.preventDefault();
+                onMove(ev.touches[0].clientY);
+            };
+            const cleanup = () => {
+                document.removeEventListener("touchmove", onTouchMove, { passive: false });
+                document.removeEventListener("touchend", cleanup);
+                document.removeEventListener("touchcancel", cleanup);
+            };
+            document.addEventListener("touchmove", onTouchMove, { passive: false });
+            document.addEventListener("touchend", cleanup);
+            document.addEventListener("touchcancel", cleanup);
+        }, { passive: false });
     }
 
-    ["rgbDim", "whiteDim", "colorStrobeRate", "whiteStrobeRate", "effectSpeed", "whiteSpeed"].forEach((k) => {
+    ["masterFade", "rgbDim", "whiteDim", "colorStrobeRate", "whiteStrobeRate", "effectSpeed", "whiteSpeed"].forEach((k) => {
         setupKnob(k);
         syncKnobIndicator(k);
     });
@@ -164,19 +188,20 @@
     });
 
     function updateMasterSliderFills() {
-        $("#brightFill").style.width = sliderBright.value + "%";
-        $("#fadeFill").style.width = (parseInt(sliderFade.value) / 50 * 100) + "%";
+        const bv = parseInt(sliderBright.value) / 100;
+        $("#brightFill").style.transform = "scaleY(" + bv + ")";
+        syncKnobIndicator("masterFade");
     }
     sliderBright.addEventListener("input", () => {
         const val = parseInt(sliderBright.value);
         $("#brightVal").textContent = val + "%";
-        $("#brightFill").style.width = val + "%";
+        $("#brightFill").style.transform = "scaleY(" + val / 100 + ")";
         socket.emit("set_brightness", { value: val / 100 });
     });
     sliderFade.addEventListener("input", () => {
         fadeTime = parseInt(sliderFade.value) / 10;
         fadeValEl.textContent = fadeTime.toFixed(1) + "s";
-        $("#fadeFill").style.width = (parseInt(sliderFade.value) / 50 * 100) + "%";
+        syncKnobIndicator("masterFade");
     });
 
     let strobeLinked = false;
@@ -707,6 +732,7 @@
         const btn = document.createElement("button");
         btn.className = "effect-btn";
         btn.dataset[dataAttr] = key;
+        if (info.category) btn.dataset.category = info.category;
         const star = document.createElement("button");
         star.className = "effect-fav" + (effectFavs.has(key) ? " is-fav" : "");
         star.textContent = effectFavs.has(key) ? "\u2605" : "\u2606";
@@ -726,7 +752,7 @@
         effectsMeta = effectMap;
         effectsGrid.innerHTML = "";
         const order = [
-            "rainbow_chase", "color_cycle", "fire", "knight_rider",
+            "solid", "rainbow_chase", "color_cycle", "fire", "knight_rider",
             "police", "police_tb", "color_wipe", "wave", "meteor",
             "breathe", "sparkle", "twinkle", "theater_chase",
             "alternating", "gradient", "rainbow_breathe",
@@ -766,7 +792,7 @@
         whiteEffectsMeta = wMap;
         whiteEffectsGrid.innerHTML = "";
         const order = [
-            "w_breathe", "w_strobe", "w_chase", "w_twinkle", "w_sparkle",
+            "w_solid", "w_breathe", "w_strobe", "w_chase", "w_twinkle", "w_sparkle",
             "w_pulse", "w_wave", "w_alternating", "w_gradient", "w_rain", "w_bounce",
         ];
         const keys = order.filter((k) => k in wMap);
@@ -890,6 +916,13 @@
             function sendSlotUpdate() {
                 activeEffectColors[slot.key] = dimmedHex();
                 activeEffectDimmers[slot.key] = parseInt(dimSlider.value);
+                if (activeEffect === "solid" && slot.key === "color") {
+                    const c = hexToRgb(dimmedHex());
+                    sliderR.value = c.r;
+                    sliderG.value = c.g;
+                    sliderB.value = c.b;
+                    updateColorDisplay();
+                }
                 if (!slotThrottle) {
                     slotThrottle = setTimeout(() => {
                         slotThrottle = null;
@@ -958,16 +991,23 @@
         for (let col = 0; col < COLUMNS; col++) {
             if (display.top && display.top[col]) {
                 const t = display.top[col];
-                topZones[col].style.backgroundColor = `rgb(${t.r}, ${t.g}, ${t.b})`;
+                const color = `rgb(${t.r},${t.g},${t.b})`;
+                topZones[col].style.backgroundColor = color;
+                const br = Math.max(t.r, t.g, t.b);
+                topZones[col].style.boxShadow = br > 24 ? `0 0 6px 1px rgba(${t.r},${t.g},${t.b},0.55)` : "";
             }
             if (display.middle && display.middle[col]) {
                 const m = display.middle[col];
                 const wv = m.w;
-                midZones[col].style.backgroundColor = `rgb(${wv}, ${wv}, ${Math.round(wv * 0.92)})`;
+                midZones[col].style.backgroundColor = `rgb(${wv},${wv},${Math.round(wv * 0.92)})`;
+                midZones[col].style.boxShadow = wv > 24 ? `0 0 5px 1px rgba(${wv},${wv},${Math.round(wv*0.92)},0.5)` : "";
             }
             if (display.bottom && display.bottom[col]) {
                 const b = display.bottom[col];
-                botZones[col].style.backgroundColor = `rgb(${b.r}, ${b.g}, ${b.b})`;
+                const color = `rgb(${b.r},${b.g},${b.b})`;
+                botZones[col].style.backgroundColor = color;
+                const br = Math.max(b.r, b.g, b.b);
+                botZones[col].style.boxShadow = br > 24 ? `0 0 6px 1px rgba(${b.r},${b.g},${b.b},0.55)` : "";
             }
         }
     }
@@ -986,18 +1026,25 @@
         const b = parseInt(sliderB.value);
         const w = parseInt(sliderW.value);
 
-        activeEffect = null;
-        activeWhiteEffect = null;
-        activeEffectColors = {};
-        activeEffectDimmers = {};
-        updateEffectButtons();
-        updateWhiteEffectButtons();
-        renderEffectConfig();
-
         if (selected.size > 0) {
+            activeEffect = null;
+            activeWhiteEffect = null;
+            activeEffectColors = {};
+            activeEffectDimmers = {};
+            updateEffectButtons();
+            updateWhiteEffectButtons();
+            renderEffectConfig();
             socket.emit("set_zones", selectionToServerPayload(r, g, b, w));
         } else {
-            socket.emit("set_color", { r, g, b, w, fade_time: fadeTime });
+            activeEffect = "solid";
+            activeWhiteEffect = "w_solid";
+            activeEffectColors = { color: rgbToHex(r, g, b) };
+            activeEffectDimmers = {};
+            updateEffectButtons();
+            updateWhiteEffectButtons();
+            renderEffectConfig();
+            socket.emit("set_effect", { name: "solid", colors: activeEffectColors });
+            socket.emit("set_white_effect", { name: "w_solid", peak: w });
         }
     }
 
@@ -1008,7 +1055,15 @@
         const meta = effectsMeta[name];
         if (meta && meta.colors) {
             meta.colors.forEach((slot) => {
-                activeEffectColors[slot.key] = slot.default;
+                if (name === "solid" && slot.key === "color") {
+                    activeEffectColors[slot.key] = rgbToHex(
+                        parseInt(sliderR.value),
+                        parseInt(sliderG.value),
+                        parseInt(sliderB.value)
+                    );
+                } else {
+                    activeEffectColors[slot.key] = slot.default;
+                }
                 activeEffectDimmers[slot.key] = 100;
             });
         }
@@ -1029,7 +1084,15 @@
     function setWhiteEffect(name) {
         activeWhiteEffect = name;
         updateWhiteEffectButtons();
-        socket.emit("set_white_effect", { name });
+        const payload = { name };
+        if (name === "w_solid") {
+            if (parseInt(sliderW.value) === 0) {
+                sliderW.value = 200;
+                updateColorDisplay();
+            }
+            payload.peak = parseInt(sliderW.value);
+        }
+        socket.emit("set_white_effect", payload);
     }
 
     function stopWhiteEffect() {
@@ -1214,10 +1277,27 @@
                 $("#brightVal").textContent = Math.round(state.brightness * 100) + "%";
                 isBlackout = state.blackout;
                 btnBlackout.classList.toggle("active", isBlackout);
-                activeEffect = state.effect;
+                activeEffect = state.effect || "solid";
+                activeWhiteEffect = state.white_effect || "w_solid";
+                if (!state.effect) {
+                    // Sync UI sliders to current display state — do NOT emit anything,
+                    // the server state is already correct and should not be touched on reload.
+                    const d = state.display;
+                    if (d && d.bottom && d.bottom[0]) {
+                        const c = d.bottom[0];
+                        activeEffectColors = { color: rgbToHex(c.r, c.g, c.b) };
+                        sliderR.value = c.r;
+                        sliderG.value = c.g;
+                        sliderB.value = c.b;
+                    } else {
+                        activeEffectColors = { color: rgbToHex(255, 255, 255) };
+                    }
+                    const w = (d && d.white && d.white[0] != null) ? d.white[0].w ?? d.white[0] : 255;
+                    sliderW.value = w;
+                    updateColorDisplay();
+                }
                 updateEffectButtons();
                 renderEffectConfig();
-                activeWhiteEffect = state.white_effect || null;
                 updateWhiteEffectButtons();
                 if (state.display) updateLedBar(state.display);
                 if (state.color_strobe_rate != null) {
@@ -1358,4 +1438,56 @@
     updateMasterSliderFills();
     renderGroups();
     renderScenes();
+
+
+    // ---- DEBUG PANEL ----
+    const debugToggle = $("#debugToggle");
+    const debugBody = $("#debugBody");
+    const debugStatus = $("#debugStatus");
+    const debugChevron = $("#debugChevron");
+    const dbgWhite = $("#dbgWhite");
+    const dbgRed = $("#dbgRed");
+    const dbgBlue = $("#dbgBlue");
+    const dbgResume = $("#dbgResume");
+    let debugOpen = false;
+
+    debugToggle.addEventListener("click", () => {
+        debugOpen = !debugOpen;
+        debugBody.style.display = debugOpen ? "flex" : "none";
+        debugChevron.textContent = debugOpen ? "\u25B2" : "\u25BC";
+    });
+
+    async function doFreeze(r, g, b, w) {
+        debugStatus.textContent = "Sending...";
+        debugStatus.className = "debug-status pending";
+        [dbgWhite, dbgRed, dbgBlue].forEach(b => b.disabled = true);
+        try {
+            const res = await fetch("/api/debug/freeze", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ r, g, b, w })
+            });
+            const data = await res.json();
+            const olaInfo = data.ola_ok ? `OLA OK (${data.ola_ms}ms)` : `OLA FAIL (${data.ola_ms}ms)`;
+            debugStatus.textContent = `FROZEN — ${olaInfo}`;
+            debugStatus.className = "debug-status frozen";
+            dbgResume.disabled = false;
+        } catch {
+            debugStatus.textContent = "Request failed";
+            debugStatus.className = "debug-status error";
+            [dbgWhite, dbgRed, dbgBlue].forEach(b => b.disabled = false);
+        }
+    }
+
+    dbgWhite.addEventListener("click", () => doFreeze(255, 255, 255, 255));
+    dbgRed.addEventListener("click", () => doFreeze(255, 0, 0, 0));
+    dbgBlue.addEventListener("click", () => doFreeze(0, 0, 255, 0));
+
+    dbgResume.addEventListener("click", async () => {
+        dbgResume.disabled = true;
+        await fetch("/api/debug/unfreeze", { method: "POST" });
+        debugStatus.textContent = "Live";
+        debugStatus.className = "debug-status live";
+        [dbgWhite, dbgRed, dbgBlue].forEach(b => b.disabled = false);
+    });
 })();

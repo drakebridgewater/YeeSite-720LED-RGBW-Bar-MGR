@@ -13,7 +13,7 @@ strobe mode and direct manual control (sliders, groups, zone selection).
 
 import math
 import random
-from config import COLUMNS, NUM_COLOR_ZONES, NUM_WHITE_ZONES, col_to_bottom_zone, col_to_top_zone
+from config import COLUMNS, NUM_COLOR_ZONES, NUM_WHITE_ZONES, col_to_bottom_zone, col_to_top_zone, FRAME_TIME
 
 
 def _hsv_to_rgb(h, s, v):
@@ -47,7 +47,8 @@ def _set_all_columns(frame, r, g, b):
         _set_column(frame, col, r, g, b)
 
 
-def solid_color(r, g, b):
+def solid_color(color=(255, 255, 255)):
+    r, g, b = color
     frame = _blank()
     _set_all_columns(frame, r, g, b)
     while True:
@@ -168,11 +169,11 @@ def police(color_a=(255, 0, 0), color_b=(0, 0, 255), speed=4.0):
     half = COLUMNS // 2
     while True:
         frame = _blank()
-        phase = int(t) % 4
+        phase = int(t) % 2
         if phase == 0:
             for col in range(half):
                 _set_column(frame, col, *color_a)
-        elif phase == 2:
+        else:
             for col in range(half, COLUMNS):
                 _set_column(frame, col, *color_b)
         yield frame
@@ -183,12 +184,12 @@ def police_tb(color_a=(255, 0, 0), color_b=(0, 0, 255), speed=4.0):
     t = 0.0
     while True:
         frame = _blank()
-        phase = int(t) % 4
+        phase = int(t) % 2
         if phase == 0:
             for col in range(COLUMNS):
                 bz = col_to_bottom_zone(col)
                 frame["color"][bz] = color_a
-        elif phase == 2:
+        else:
             for col in range(COLUMNS):
                 tz = col_to_top_zone(col)
                 frame["color"][tz] = color_b
@@ -299,7 +300,7 @@ def strobe(color=(255, 255, 255), rate=5.0):
         if on:
             _set_all_columns(frame, *color)
         yield frame
-        t += 1.0 / 40
+        t += FRAME_TIME
 
 
 def alternating(color_a=(255, 0, 0), color_b=(0, 0, 255), speed=2.0):
@@ -558,6 +559,13 @@ def _w_blank():
     return [0] * NUM_WHITE_ZONES
 
 
+def w_solid(peak=255):
+    """Static white - all zones at same level."""
+    out = [int(peak)] * NUM_WHITE_ZONES
+    while True:
+        yield list(out)
+
+
 def w_breathe(peak=255, speed=1.0):
     t = 0.0
     while True:
@@ -572,7 +580,7 @@ def w_strobe(peak=255, rate=5.0):
     while True:
         on = (t % period) < (period / 2)
         yield [peak if on else 0] * NUM_WHITE_ZONES
-        t += 1.0 / 40
+        t += FRAME_TIME
 
 
 def w_chase(peak=255, speed=2.0):
@@ -686,6 +694,7 @@ def w_bounce(peak=255, speed=1.5, width=2):
 
 
 WHITE_EFFECTS = {
+    "w_solid": {"name": "Solid", "fn": w_solid, "category": "ambient"},
     "w_breathe": {"name": "Breathe", "fn": w_breathe, "category": "ambient"},
     "w_strobe": {"name": "Strobe", "fn": w_strobe, "category": "flash"},
     "w_chase": {"name": "Chase", "fn": w_chase, "category": "chase"},
@@ -701,6 +710,12 @@ WHITE_EFFECTS = {
 
 
 EFFECTS = {
+    "solid": {
+        "name": "Solid", "fn": solid_color, "category": "ambient",
+        "colors": [
+            {"key": "color", "label": "Color", "default": "#ffffff"},
+        ],
+    },
     "rainbow_chase": {
         "name": "Rainbow Chase", "fn": rainbow_chase, "category": "color",
         "colors": [],
