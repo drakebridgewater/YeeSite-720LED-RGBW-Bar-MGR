@@ -2,15 +2,29 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-# Install ALSA runtime + dev headers (needed to compile python-rtmidi C extension),
-# build tools, raveloxmidi (RTP-MIDI daemon for iOS Network MIDI), and avahi for mDNS.
+# Install ALSA, build tools, avahi for mDNS, and build raveloxmidi from source
+# (raveloxmidi is not in Debian Bookworm repos)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libasound2 \
     libasound2-dev \
     build-essential \
-    raveloxmidi \
+    git \
+    autoconf \
+    automake \
+    libtool \
+    pkg-config \
     avahi-daemon \
     dbus \
+    libconfig-dev \
+    libjson-c-dev \
+    && git clone --depth 1 https://github.com/ravelox/pimidi.git /tmp/pimidi \
+    && cd /tmp/pimidi/raveloxmidi \
+    && autoreconf -fi \
+    && ./configure --prefix=/usr \
+    && make -j$(nproc) \
+    && make install \
+    && rm -rf /tmp/pimidi \
+    && apt-get remove -y git autoconf automake libtool \
+    && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
