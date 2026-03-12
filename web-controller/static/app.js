@@ -387,6 +387,44 @@
     }
 
 
+    function updateGroupMiniViews(display) {
+        if (!display) return;
+        document.querySelectorAll(".group-mini-bar").forEach((bar) => {
+            const gid = bar.dataset.groupId;
+            const g = groups.find((x) => x.id === gid);
+            if (!g) return;
+            // Map column → {hasRgb, hasMid}
+            const colInfo = new Map();
+            for (const key of g.zones) {
+                const { row, col } = parseZoneKey(key);
+                if (!colInfo.has(col)) colInfo.set(col, { hasRgb: false, hasMid: false });
+                if (row === "top" || row === "bot") colInfo.get(col).hasRgb = true;
+                if (row === "mid") colInfo.get(col).hasMid = true;
+            }
+            bar.querySelectorAll(".gmb-seg").forEach((seg) => {
+                const col = parseInt(seg.dataset.col);
+                const info = colInfo.get(col);
+                if (!info) {
+                    seg.style.backgroundColor = "";
+                    seg.style.boxShadow = "";
+                    return;
+                }
+                let r = 0, gv = 0, b = 0;
+                if (info.hasRgb && display.bottom && display.bottom[col]) {
+                    const px = display.bottom[col];
+                    r = px.r; gv = px.g; b = px.b;
+                }
+                if (r + gv + b === 0 && info.hasMid && display.middle && display.middle[col]) {
+                    const w = display.middle[col].w;
+                    r = w; gv = w; b = Math.round(w * 0.9);
+                }
+                const bright = Math.max(r, gv, b);
+                seg.style.backgroundColor = `rgb(${r},${gv},${b})`;
+                seg.style.boxShadow = bright > 20 ? `0 0 3px 1px rgba(${r},${gv},${b},0.7)` : "";
+            });
+        });
+    }
+
     function highlightGroupZones(group) {
         selected.clear();
         group.zones.forEach((k) => selected.add(k));
@@ -480,6 +518,7 @@
             card.className = "group-card";
             card.dataset.id = g.id;
             card.innerHTML = `
+                <div class="group-mini-bar" data-group-id="${g.id}"></div>
                 <div class="group-header">
                     <input class="group-name-input" type="text" value="${esc(g.name)}" aria-label="Group name">
                     <div class="group-actions">
@@ -508,6 +547,13 @@
                     </div>
                 </div>
             `;
+
+            // Populate mini bar segments
+            const miniBar = card.querySelector(".group-mini-bar");
+            let segs = "";
+            for (let c = 0; c < COLUMNS; c++) segs += `<div class="gmb-seg" data-col="${c}"></div>`;
+            miniBar.innerHTML = segs;
+            if (lastFrame) updateGroupMiniViews(lastFrame);
 
             const nameInput = card.querySelector(".group-name-input");
             const offBtn = card.querySelector(".goff");
@@ -1470,8 +1516,12 @@
         statusText.textContent = "Disconnected";
     });
 
+    let lastFrame = null;
+
     socket.on("frame", (display) => {
+        lastFrame = display;
         updateLedBar(display);
+        updateGroupMiniViews(display);
     });
 
     socket.on("midi_status", (data) => {
@@ -1479,6 +1529,8 @@
         const text = document.getElementById("midiStatusText");
         const lastEvt = document.getElementById("midiLastEvent");
         const badge = document.getElementById("midiModeBadge");
+        const bpmDisplay = document.getElementById("bpmDisplay");
+        const clockStatus = document.getElementById("clockStatus");
         if (dot) dot.classList.toggle("connected", !!data.connected);
         if (text) text.textContent = data.connected ? "Connected — YeeSiteLights" : "Waiting for MIDI…";
         if (lastEvt && data.last_event) lastEvt.textContent = data.last_event;
@@ -1487,6 +1539,42 @@
             badge.textContent = mode === "idle" ? "" : mode;
             badge.className = "midi-mode-badge" + (mode !== "idle" ? " mode-" + mode : "");
         }
+        if (bpmDisplay) bpmDisplay.textContent = (data.bpm > 0) ? Math.round(data.bpm) + " BPM" : "-- BPM";
+        if (clockStatus) {
+            clockStatus.textContent = data.clock_running ? "CLOCK" : "";
+            clockStatus.classList.toggle("running", !!data.clock_running);
+        }
+    });
+
+    // ---- MIDI BEAT ----
+    let activeBeatEffect = null;
+    let beatDotTimer = null;
+
+    socket.on("midi_beat", (data) => {
+        const beatDot = document.getElementById("beatDot");
+        const bpmDisplay = document.getElementById("bpmDisplay");
+        if (bpmDisplay && data.bpm > 0) bpmDisplay.textContent = Math.round(data.bpm) + " BPM";
+        if (beatDot) {
+            beatDot.classList.add("flash");
+            clearTimeout(beatDotTimer);
+            beatDotTimer = setTimeout(() => beatDot.classList.remove("flash"), 120);
+        }
+    });
+
+    document.querySelectorAll(".beat-effect-btn[data-beat]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const name = btn.dataset.beat;
+            activeBeatEffect = activeBeatEffect === name ? null : name;
+            socket.emit("set_beat_effect", { name: activeBeatEffect || "" });
+            document.querySelectorAll(".beat-effect-btn[data-beat]").forEach((b) => {
+                b.classList.toggle("active", b.dataset.beat === activeBeatEffect);
+            });
+        });
+    });
+    document.getElementById("beatEffectStop")?.addEventListener("click", () => {
+        activeBeatEffect = null;
+        socket.emit("stop", {});
+        document.querySelectorAll(".beat-effect-btn[data-beat]").forEach((b) => b.classList.remove("active"));
     });
 
     // ---- SHORTCUTS OVERLAY ----

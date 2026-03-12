@@ -597,6 +597,87 @@ def midi_reactive(midi_state_ref):
         yield frame
 
 
+def beat_flash(midi_state_ref):
+    """
+    Full-bar flash on every beat. Hue advances 90° each beat.
+    Reads beat_phase and beat_count from midi_state_ref.
+    """
+    hue = 0.0
+    last_beat = -1
+    while True:
+        frame = _blank()
+        beat_count = midi_state_ref.get("beat_count", 0)
+        beat_phase = midi_state_ref.get("beat_phase", 0.0)
+        clock_running = midi_state_ref.get("clock_running", False)
+
+        if beat_count != last_beat:
+            hue = (hue + 90) % 360
+            last_beat = beat_count
+
+        if clock_running:
+            # Bright flash at phase 0, decays over first third of the beat
+            brightness = max(0.0, 1.0 - beat_phase * 3.5)
+            if brightness > 0:
+                r, g, b = _hsv_to_rgb(hue, 1.0, brightness)
+                _set_all_columns(frame, r, g, b)
+                for i in range(NUM_WHITE_ZONES):
+                    frame["white"][i] = int(brightness * 200)
+        yield frame
+
+
+def beat_chase(midi_state_ref):
+    """
+    A bright dot sweeps from left to right within each beat, hue advances each beat.
+    """
+    hue = 0.0
+    last_beat = -1
+    while True:
+        frame = _blank()
+        beat_count = midi_state_ref.get("beat_count", 0)
+        beat_phase = midi_state_ref.get("beat_phase", 0.0)
+        clock_running = midi_state_ref.get("clock_running", False)
+
+        if beat_count != last_beat:
+            hue = (hue + 30) % 360
+            last_beat = beat_count
+
+        if clock_running:
+            center = beat_phase * (COLUMNS - 1)
+            r, g, b = _hsv_to_rgb(hue, 1.0, 1.0)
+            width = 3
+            for col in range(COLUMNS):
+                dist = abs(col - center)
+                if dist <= width:
+                    f = (1.0 - dist / (width + 1)) ** 1.5
+                    _set_column(frame, col, int(r * f), int(g * f), int(b * f))
+        yield frame
+
+
+def beat_color_cycle(midi_state_ref):
+    """
+    Whole bar pulses, advancing hue by 60° on each beat. Brightness peaks at downbeat.
+    """
+    hue = 0.0
+    last_beat = -1
+    while True:
+        frame = _blank()
+        beat_count = midi_state_ref.get("beat_count", 0)
+        beat_phase = midi_state_ref.get("beat_phase", 0.0)
+        clock_running = midi_state_ref.get("clock_running", False)
+
+        if beat_count != last_beat:
+            hue = (hue + 60) % 360
+            last_beat = beat_count
+
+        if clock_running:
+            # Cosine pulse: peaks at phase 0, troughs at phase 0.5
+            brightness = (math.cos(beat_phase * 2 * math.pi) + 1) / 2
+            brightness = 0.2 + brightness * 0.8   # floor at 20%
+            r, g, b = _hsv_to_rgb(hue, 1.0, brightness)
+            _set_all_columns(frame, r, g, b)
+        yield frame
+
+
 def _rgb_to_hex(r, g, b):
     return f"#{r:02x}{g:02x}{b:02x}"
 

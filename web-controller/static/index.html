@@ -21,10 +21,13 @@
             </div>
         </div>
         <div class="header-led">
-            <div class="led-bar-3row" id="ledBar">
-                <div class="led-row" id="rowTop"></div>
-                <div class="led-row" id="rowMid"></div>
-                <div class="led-row" id="rowBot"></div>
+            <div class="led-bar-wrap">
+                <div class="led-bar-3row" id="ledBar">
+                    <div class="led-row" id="rowTop"></div>
+                    <div class="led-row" id="rowMid"></div>
+                    <div class="led-row" id="rowBot"></div>
+                </div>
+                <button class="zone-add-fab" id="zoneAddFab" title="Save selection as group" aria-label="Create zone group">+</button>
             </div>
             <div class="header-led-controls">
                 <div class="knob-wrap" data-knob="masterFade">
@@ -61,7 +64,6 @@
                     <input type="range" id="sliderWhiteDim" min="0" max="100" value="100" class="knob-input">
                 </div>
             </div>
-            <button class="zone-add-fab" id="zoneAddFab" title="Save selection as group" aria-label="Create zone group">+</button>
         </div>
     </header>
 
@@ -223,6 +225,23 @@
                     </div>
                     <div class="midi-last-event" id="midiLastEvent"></div>
                     <div class="midi-mode-badge" id="midiModeBadge"></div>
+
+                    <div class="midi-clock-row">
+                        <span class="beat-dot" id="beatDot"></span>
+                        <span class="bpm-display" id="bpmDisplay">-- BPM</span>
+                        <span class="clock-status" id="clockStatus"></span>
+                    </div>
+
+                    <div class="beat-effects-section">
+                        <div class="beat-effects-title">Beat-Sync Effects</div>
+                        <div class="beat-effects-btns">
+                            <button class="beat-effect-btn" data-beat="beat_flash">Beat Flash</button>
+                            <button class="beat-effect-btn" data-beat="beat_chase">Beat Chase</button>
+                            <button class="beat-effect-btn" data-beat="beat_color_cycle">Color Cycle</button>
+                            <button class="beat-effect-btn beat-effect-stop" id="beatEffectStop">Stop</button>
+                        </div>
+                    </div>
+
                     <div class="midi-setup-info">
                         <div class="midi-setup-title">iOS Setup</div>
                         <ol class="midi-setup-steps">

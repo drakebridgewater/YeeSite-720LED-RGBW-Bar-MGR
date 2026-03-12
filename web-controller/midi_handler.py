@@ -12,6 +12,7 @@ Designed for graceful degradation: if python-rtmidi or ALSA is unavailable,
 the module loads and all methods are no-ops so the web controller still runs.
 """
 
+import collections
 import logging
 import threading
 import time
@@ -41,6 +42,11 @@ midi_state = {
     "manual_sat": 1.0,
     "midi_connected": False,
     "last_event": None,         # human-readable string for UI display
+    # Clock sync
+    "bpm": 0.0,
+    "beat_phase": 0.0,          # 0.0–1.0 position within current beat
+    "beat_count": 0,            # total beats received since last Start
+    "clock_running": False,
 }
 
 COLUMNS = 24  # number of physical columns on the bar
@@ -118,6 +124,11 @@ class MidiHandler:
         self.on_cc_white_strobe_rate = None
         self.on_cc_manual_color = None
         self.on_stop = None
+        self.on_beat = None   # called each quarter-note downbeat with {"bpm": float, "beat_count": int}
+
+        # Clock sync state
+        self._clock_times = collections.deque(maxlen=24)
+        self._clock_pulse_count = 0
 
         if not RTMIDI_AVAILABLE:
             return
@@ -167,7 +178,7 @@ class MidiHandler:
             except Exception:
                 pass
             self._midi_in.open_port(port_index)
-            self._midi_in.ignore_types(sysex=True, timing=True, active_sense=True)
+            self._midi_in.ignore_types(sysex=True, timing=False, active_sense=True)
             self._midi_in.set_callback(self._on_midi_message)
             midi_state["midi_connected"] = True
             log.info("MIDI: port opened — waiting for iPad")
@@ -219,6 +230,18 @@ class MidiHandler:
             return
 
         status = message[0]
+
+        # System Real-Time messages are single bytes (0xF8–0xFF), no channel
+        if status == 0xF8:   # Clock pulse
+            self._handle_clock()
+            return
+        if status == 0xFA or status == 0xFB:   # Start / Continue
+            self._handle_clock_start()
+            return
+        if status == 0xFC:   # Stop
+            self._handle_clock_stop()
+            return
+
         msg_type = status & 0xF0
         channel = status & 0x0F
 
@@ -232,6 +255,54 @@ class MidiHandler:
             self._handle_note_off(channel, message[1])
         elif msg_type == 0xB0 and len(message) >= 3:
             self._handle_cc(channel, message[1], message[2])
+
+    # ------------------------------------------------------------------
+    # MIDI Clock handlers
+    # ------------------------------------------------------------------
+
+    def _handle_clock_start(self):
+        """0xFA (Start) or 0xFB (Continue): reset and begin counting pulses."""
+        self._clock_pulse_count = 0
+        self._clock_times.clear()
+        midi_state["clock_running"] = True
+        midi_state["beat_count"] = 0
+        midi_state["bpm"] = 0.0
+        midi_state["beat_phase"] = 0.0
+
+    def _handle_clock_stop(self):
+        """0xFC (Stop): mark clock as not running."""
+        midi_state["clock_running"] = False
+        midi_state["beat_phase"] = 0.0
+
+    def _handle_clock(self):
+        """0xF8 (Clock): 24 pulses per quarter note — compute BPM and beat phase."""
+        if not midi_state["clock_running"]:
+            return
+
+        now = time.monotonic()
+        self._clock_pulse_count += 1
+        self._clock_times.append(now)
+
+        # Compute BPM from rolling window of timestamps
+        if len(self._clock_times) >= 2:
+            total_time = self._clock_times[-1] - self._clock_times[0]
+            num_intervals = len(self._clock_times) - 1
+            if num_intervals > 0 and total_time > 0:
+                avg_interval = total_time / num_intervals
+                midi_state["bpm"] = round(60.0 / (avg_interval * 24), 1)
+
+        # Beat phase: position 0.0–1.0 within the current quarter note
+        pulse_in_beat = self._clock_pulse_count % 24
+        midi_state["beat_phase"] = pulse_in_beat / 24.0
+
+        # Fire on_beat at the downbeat of each quarter note
+        if pulse_in_beat == 0:
+            midi_state["beat_count"] += 1
+            if self.on_beat:
+                self.on_beat({
+                    "bpm": midi_state["bpm"],
+                    "beat_count": midi_state["beat_count"],
+                })
 
     def _handle_note_on(self, channel, note, velocity):
         if channel == MIDI_CH_PADS:

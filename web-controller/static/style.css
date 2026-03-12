@@ -241,23 +241,29 @@ kbd {
 }
 .white-ctrl-row .color-fader { flex: 1; }
 
-/* ---- SELECTION TOOLBAR (fixed bottom) ---- */
 /* ---- ZONE ADD FAB ---- */
+.led-bar-wrap {
+    position: relative;
+    flex: 1; min-width: 0;
+}
+.led-bar-wrap .led-bar-3row { width: 100%; }
 .zone-add-fab {
-    width: 38px; height: 38px; flex-shrink: 0;
+    position: absolute; bottom: -16px; right: 0px;
+    width: 34px; height: 34px;
     border-radius: 50%;
-    background: var(--accent); color: #000;
+    background: #f5c400; color: #000;
     border: none; cursor: pointer;
-    font-size: 1.5rem; font-weight: 700; line-height: 1;
+    font-size: 1.4rem; font-weight: 700; line-height: 1;
     display: flex; align-items: center; justify-content: center;
     opacity: 0; pointer-events: none;
     transition: opacity 0.15s, transform 0.15s, box-shadow 0.15s;
     transform: scale(0.7);
     touch-action: manipulation;
     box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    z-index: 10;
 }
 .zone-add-fab.visible { opacity: 1; pointer-events: auto; transform: scale(1); }
-.zone-add-fab:hover { box-shadow: 0 3px 14px rgba(56,189,248,0.5); }
+.zone-add-fab:hover { box-shadow: 0 3px 14px rgba(245,196,0,0.6); }
 
 /* ---- MAIN LAYOUT ---- */
 main {
@@ -899,10 +905,28 @@ input[type="range"]:not(.knob-input):not(.fader-input):not(.master-slider-input)
     background: var(--surface2);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-sm);
-    padding: 10px;
+    padding: 0;
+    overflow: hidden;
     transition: border-color 0.15s ease;
 }
 .group-card:hover { border-color: var(--border); }
+.group-card > *:not(.group-mini-bar) { padding: 0 10px; }
+.group-card > .group-header { padding-top: 8px; }
+.group-card > .group-footer { padding-bottom: 8px; }
+
+/* Mini zone live view */
+.group-mini-bar {
+    display: flex; height: 12px; gap: 1px;
+    background: var(--surface1);
+    padding: 2px 3px;
+    overflow: hidden;
+}
+.gmb-seg {
+    flex: 1; height: 100%;
+    background: var(--surface3);
+    border-radius: 1px;
+    transition: background-color 0.1s, box-shadow 0.1s;
+}
 .group-header { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
 .group-name { font-size: 0.75rem; font-weight: 700; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .group-zone-count { font-size: 0.6rem; color: var(--text-dim); white-space: nowrap; }
@@ -1107,8 +1131,10 @@ header h1 span { color: var(--accent); }
     display: flex; align-items: center; gap: 16px;
     width: 100%; padding: 0;
 }
-.header-led .led-bar-3row {
+.header-led .led-bar-wrap {
     flex: 1; min-width: 0;
+}
+.header-led .led-bar-3row {
     padding: 6px 8px; gap: 3px;
 }
 .header-led .led-row { gap: 2px; }
@@ -1254,6 +1280,57 @@ header h1 span { color: var(--accent); }
 .midi-mode-badge.mode-reactive { background: var(--success-dim); color: var(--success); }
 .midi-mode-badge.mode-effect   { background: var(--accent-dim);   color: var(--accent); }
 .midi-mode-badge.mode-color    { background: var(--warn-dim);     color: var(--warn); }
+
+/* Beat / clock display */
+.midi-clock-row {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 12px;
+}
+.beat-dot {
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--surface3); flex-shrink: 0;
+    transition: background 0.05s;
+}
+.beat-dot.flash {
+    background: #f5c400;
+    box-shadow: 0 0 8px 2px rgba(245,196,0,0.6);
+}
+.bpm-display {
+    font-size: 1.1rem; font-weight: 700; font-variant-numeric: tabular-nums;
+    color: var(--text); letter-spacing: 0.02em;
+}
+.clock-status {
+    font-size: 0.68rem; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.07em; color: var(--text-muted);
+}
+.clock-status.running { color: #f5c400; }
+
+/* Beat-sync effect buttons */
+.beat-effects-section {
+    margin-bottom: 14px;
+    padding: 10px 12px;
+    background: var(--surface2); border-radius: var(--radius-xs);
+    border: 1px solid var(--border-subtle);
+}
+.beat-effects-title {
+    font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.07em; color: var(--text-dim); margin-bottom: 8px;
+}
+.beat-effects-btns {
+    display: flex; flex-wrap: wrap; gap: 7px;
+}
+.beat-effect-btn {
+    padding: 6px 14px; border-radius: var(--radius-xs);
+    border: 1px solid var(--border); background: var(--surface3);
+    color: var(--text); font-size: 0.8rem; cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+}
+.beat-effect-btn:hover { background: var(--surface4); border-color: #f5c400; }
+.beat-effect-btn.active {
+    background: rgba(245,196,0,0.18); border-color: #f5c400; color: #f5c400;
+}
+.beat-effect-stop { border-color: var(--danger); color: var(--danger); }
+.beat-effect-stop:hover { background: rgba(255,60,60,0.12); }
 
 .midi-setup-info {
     border-top: 1px solid var(--border-subtle);

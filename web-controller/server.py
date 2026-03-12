@@ -17,7 +17,13 @@ from config import (
     TOTAL_CHANNELS, COLUMNS, FPS, FRAME_TIME, WEB_HOST, WEB_PORT,
     color_zone_channels, white_zone_channel, col_to_bottom_zone, col_to_top_zone,
 )
-from effects import EFFECTS, WHITE_EFFECTS, midi_reactive
+from effects import EFFECTS, WHITE_EFFECTS, midi_reactive, beat_flash, beat_chase, beat_color_cycle
+
+BEAT_EFFECTS = {
+    "beat_flash":       {"name": "Beat Flash",        "fn": beat_flash},
+    "beat_chase":       {"name": "Beat Chase",        "fn": beat_chase},
+    "beat_color_cycle": {"name": "Beat Color Cycle",  "fn": beat_color_cycle},
+}
 from midi_handler import MidiHandler, midi_state as _midi_state
 
 app = Flask(__name__, static_folder="static")
@@ -230,6 +236,8 @@ def animation_loop():
                 "connected": _midi_state.get("midi_connected", False),
                 "mode": _midi_state.get("mode", "idle"),
                 "last_event": _midi_state.get("last_event"),
+                "bpm": _midi_state.get("bpm", 0.0),
+                "clock_running": _midi_state.get("clock_running", False),
             })
             last_display = now
 
@@ -428,6 +436,14 @@ def _midi_set_manual_color(r, g, b):
     set_all(r, g, b, 0)
 
 
+def _on_beat(beat_info):
+    """Called by MidiHandler on each quarter-note downbeat (MIDI clock thread)."""
+    socketio.emit("midi_beat", {
+        "bpm": beat_info.get("bpm", 0.0),
+        "beat_count": beat_info.get("beat_count", 0),
+    })
+
+
 midi_handler.on_pad_trigger = _midi_pad_trigger
 midi_handler.on_color_preset = _midi_color_preset
 midi_handler.on_cc_brightness = _midi_set_brightness
@@ -438,6 +454,7 @@ midi_handler.on_cc_color_strobe_rate = _midi_set_color_strobe_rate
 midi_handler.on_cc_white_strobe_rate = _midi_set_white_strobe_rate
 midi_handler.on_cc_manual_color = _midi_set_manual_color
 midi_handler.on_stop = _midi_stop
+midi_handler.on_beat = _on_beat
 
 
 # ---- LAMP API (Home Assistant compatible) ----
@@ -806,6 +823,20 @@ def api_debug_unfreeze():
     global animation_frozen
     animation_frozen = False
     return jsonify({"ok": True, "frozen": False})
+
+
+@socketio.on("set_beat_effect")
+def ws_set_beat_effect(data):
+    global current_effect, effect_gen
+    name = data.get("name", "")
+    if name in BEAT_EFFECTS:
+        with effect_lock:
+            current_effect = name
+            effect_gen = BEAT_EFFECTS[name]["fn"](_midi_state)
+    else:
+        with effect_lock:
+            current_effect = None
+            effect_gen = None
 
 
 @socketio.on("stop")
