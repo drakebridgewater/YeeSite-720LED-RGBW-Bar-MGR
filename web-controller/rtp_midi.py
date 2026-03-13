@@ -78,12 +78,27 @@ class RtpMidiServer:
                 except OSError:
                     pass
 
+    @staticmethod
+    def _get_local_ip():
+        """Return the outbound LAN IP (avoids 127.0.0.1 in Docker)."""
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        try:
+            s.connect(('10.255.255.255', 1))
+            return s.getsockname()[0]
+        except Exception:
+            return None
+        finally:
+            s.close()
+
     def _advertise_mdns(self):
         if not _ZEROCONF_AVAILABLE:
             log.warning("zeroconf not installed — iOS auto-discovery unavailable")
             return
+        local_ip = self._get_local_ip()
+        if not local_ip or local_ip.startswith('127.'):
+            log.warning("mDNS: could not determine LAN IP, skipping advertisement")
+            return
         try:
-            local_ip = socket.gethostbyname(socket.gethostname())
             name = self.OUR_NAME.decode()
             info = ServiceInfo(
                 "_apple-midi._udp.local.",
@@ -92,9 +107,9 @@ class RtpMidiServer:
                 port=self.data_port,
                 properties={},
             )
-            self._zeroconf = Zeroconf()
+            self._zeroconf = Zeroconf(interfaces=[local_ip])
             self._zeroconf.register_service(info)
-            log.info("mDNS: advertised %s at %s:%d", self.OUR_NAME.decode(), local_ip, self.data_port)
+            log.info("mDNS: advertised %s at %s:%d", name, local_ip, self.data_port)
         except Exception as e:
             log.warning("mDNS advertisement failed: %s", e)
 
