@@ -133,7 +133,8 @@ class RtpMidiServer:
 
     def _on_clock(self, data, addr, sock):
         # CK: FF FF "CK" ssrc(4) count(1) pad(3) ts1(8) [ts2(8) [ts3(8)]]
-        if len(data) < 36:
+        # count=0 → 20 bytes, count=1 → 28 bytes, count=2 → 36 bytes
+        if len(data) < 20:
             return
         _peer_ssrc, count = struct.unpack_from('>IB', data, 4)
         ts1, = struct.unpack_from('>Q', data, 12)
