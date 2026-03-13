@@ -21,6 +21,15 @@
             </div>
         </div>
         <div class="header-led">
+            <div class="master-bright-wrap">
+                <div class="master-bright-val" id="brightVal">100%</div>
+                <div class="master-bright-track-wrap">
+                    <div class="master-bright-fill" id="brightFill"></div>
+                    <input type="range" id="sliderBright" class="master-bright-slider"
+                           min="0" max="100" value="100">
+                </div>
+                <div class="master-bright-label">Bright</div>
+            </div>
             <div class="led-bar-wrap">
                 <div class="led-bar-3row" id="ledBar">
                     <div class="led-row" id="rowTop"></div>
@@ -37,15 +46,6 @@
                     <div class="knob-label">Fade</div>
                     <div class="knob-value" id="fadeVal">0s</div>
                     <input type="range" id="sliderFade" class="knob-input" min="0" max="50" value="0">
-                </div>
-                <div class="master-bright-wrap">
-                    <div class="master-bright-val" id="brightVal">100%</div>
-                    <div class="master-bright-track-wrap">
-                        <div class="master-bright-fill" id="brightFill"></div>
-                        <input type="range" id="sliderBright" class="master-bright-slider"
-                               min="0" max="100" value="100">
-                    </div>
-                    <div class="master-bright-label">Bright</div>
                 </div>
                 <div class="knob-wrap" data-knob="rgbDim">
                     <div class="knob knob-sm" id="knobRgbDim">

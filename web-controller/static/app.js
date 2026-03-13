@@ -1078,13 +1078,6 @@
             function sendSlotUpdate() {
                 activeEffectColors[slot.key] = dimmedHex();
                 activeEffectDimmers[slot.key] = parseInt(dimSlider.value);
-                if (activeEffect === "solid" && slot.key === "color") {
-                    const c = hexToRgb(dimmedHex());
-                    sliderR.value = c.r;
-                    sliderG.value = c.g;
-                    sliderB.value = c.b;
-                    updateColorDisplay();
-                }
                 if (!slotThrottle) {
                     slotThrottle = setTimeout(() => {
                         slotThrottle = null;
@@ -1249,7 +1242,6 @@
         updateEffectButtons();
         renderEffectConfig();
         socket.emit("set_effect", { name: "" });
-        // Restore static RGB color so LEDs don't freeze on last animation frame
         const r = parseInt(sliderR.value), g = parseInt(sliderG.value), b = parseInt(sliderB.value);
         socket.emit("set_color", { r, g, b, fade_time: fadeTime });
     }
@@ -1412,9 +1404,6 @@
 
     colorPicker.addEventListener("input", () => {
         const c = hexToRgb(colorPicker.value);
-        customPresets.push({ r: c.r, g: c.g, b: c.b, w: 0 });
-        saveCustomPresets();
-        renderCustomPresets();
         sliderR.value = c.r;
         sliderG.value = c.g;
         sliderB.value = c.b;
@@ -1424,6 +1413,12 @@
             colorThrottle = null;
             sendColor();
         }, 30);
+    });
+    colorPicker.addEventListener("change", () => {
+        const c = hexToRgb(colorPicker.value);
+        customPresets.push({ r: c.r, g: c.g, b: c.b, w: 0 });
+        saveCustomPresets();
+        renderCustomPresets();
     });
 
 
@@ -1448,8 +1443,8 @@
                 $("#brightVal").textContent = Math.round(state.brightness * 100) + "%";
                 isBlackout = state.blackout;
                 btnBlackout.classList.toggle("active", isBlackout);
-                activeEffect = state.effect || "solid";
-                activeWhiteEffect = state.white_effect || "w_solid";
+                activeEffect = state.effect || null;
+                activeWhiteEffect = state.white_effect || null;
                 if (!state.effect) {
                     // Sync UI sliders to current display state — do NOT emit anything,
                     // the server state is already correct and should not be touched on reload.

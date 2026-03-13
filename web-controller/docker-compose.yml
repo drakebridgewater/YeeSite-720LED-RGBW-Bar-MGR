@@ -8,8 +8,6 @@ services:
     #   - RTP-MIDI UDP ports 5004/5005 pairing handshake with iOS
     # Web UI is accessible at http://<unraid-ip>:5003
     network_mode: host
-    devices:
-      - /dev/snd:/dev/snd   # ALSA sequencer for raveloxmidi virtual MIDI port
     environment:
       - OLA_HOST=10.0.0.10
       - OLA_PORT=9090

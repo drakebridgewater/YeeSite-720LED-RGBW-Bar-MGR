@@ -248,7 +248,7 @@ kbd {
 }
 .led-bar-wrap .led-bar-3row { width: 100%; }
 .zone-add-fab {
-    position: absolute; bottom: -16px; right: 0px;
+    position: absolute; bottom: 4px; right: 6px;
     width: 34px; height: 34px;
     border-radius: 50%;
     background: #f5c400; color: #000;
@@ -805,6 +805,7 @@ input[type="range"]:not(.knob-input):not(.fader-input):not(.master-slider-input)
 .effect-btn.active .cat-tag { opacity: 0.7; color: inherit; }
 
 /* White effects — warm accent */
+.white-effects-grid { grid-template-columns: repeat(4, 1fr); }
 .white-effects-grid .effect-btn { border-left-color: #8a7030; }
 .white-effects-grid .effect-btn:hover { border-color: #d4b85c; background: rgba(212,184,92,0.1); }
 .white-effects-grid .effect-btn.active {
@@ -1152,7 +1153,7 @@ header h1 span { color: var(--accent); }
     flex-shrink: 0;
     padding: 4px 0;
 }
-.header-led-controls .master-bright-wrap {
+.header-led > .master-bright-wrap {
     flex: none; min-width: 100px; max-width: 180px; width: 130px;
 }
 .header-led-controls .master-bright-track-wrap {

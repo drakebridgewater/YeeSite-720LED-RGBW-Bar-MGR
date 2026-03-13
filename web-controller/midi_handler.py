@@ -1,30 +1,24 @@
 """
 MIDI handler for YeeSite lighting controller.
 
-Connects to raveloxmidi's ALSA virtual port and translates MIDI events
-into lighting state changes.
+Receives Apple MIDI (RTP-MIDI) directly over UDP via rtp_midi.RtpMidiServer.
+No ALSA, no raveloxmidi, no kernel modules required.
 
 MIDI layout (MPK Mini defaults):
   Ch1  (0-indexed: 0) — piano keys + knobs
   Ch10 (0-indexed: 9) — drum pads
 
-Designed for graceful degradation: if python-rtmidi or ALSA is unavailable,
-the module loads and all methods are no-ops so the web controller still runs.
+Designed for graceful degradation: all methods are no-ops if startup fails,
+so the web controller still runs without MIDI.
 """
 
 import collections
 import logging
-import threading
 import time
 
-log = logging.getLogger(__name__)
+from rtp_midi import RtpMidiServer
 
-try:
-    import rtmidi
-    RTMIDI_AVAILABLE = True
-except ImportError:
-    RTMIDI_AVAILABLE = False
-    log.warning("python-rtmidi not installed; MIDI disabled")
+log = logging.getLogger(__name__)
 
 # MIDI channel constants (0-indexed)
 MIDI_CH_KEYS = 0   # Ch1 in 1-indexed notation
@@ -69,7 +63,7 @@ def _hsv_to_rgb(h, s, v):
 
 class MidiHandler:
     """
-    Listens for MIDI messages via python-rtmidi (ALSA backend on Linux).
+    Listens for MIDI messages via pure-Python RTP-MIDI (Apple MIDI over UDP).
 
     Callbacks wired by server.py after import to avoid circular imports:
       on_pad_trigger(effect_name: str)
@@ -108,10 +102,15 @@ class MidiHandler:
         51: (0, 0, 0, 0),          # All Off
     }
 
-    def __init__(self, port_name_substring="raveloxmidi"):
-        self.available = False
-        self.port_name = port_name_substring
-        self._midi_in = None
+    def __init__(self, port_name_substring=None):  # noqa: unused, kept for API compat
+        self.available = True
+
+        self._server = RtpMidiServer(
+            data_port=5004,
+            control_port=5005,
+            midi_callback=self._on_midi_message,
+            session_callback=self._on_session_change,
+        )
 
         # Callbacks set by server.py
         self.on_pad_trigger = None
@@ -130,102 +129,30 @@ class MidiHandler:
         self._clock_times = collections.deque(maxlen=24)
         self._clock_pulse_count = 0
 
-        if not RTMIDI_AVAILABLE:
-            return
-
+    def start(self, port_index=None):  # noqa: unused, kept for API compat
         try:
-            self._midi_in = rtmidi.MidiIn()
-            self.available = True
+            self._server.start()
         except Exception as e:
-            log.warning(f"Could not initialise rtmidi: {e}")
-
-    def find_port(self, retries=12, delay=1.0):
-        """Find the raveloxmidi ALSA port by name substring, retrying up to retries×delay seconds."""
-        if not self.available:
-            return None
-        for attempt in range(retries):
-            ports = self._midi_in.get_ports()
-            for i, name in enumerate(ports):
-                if self.port_name.lower() in name.lower():
-                    log.info(f"MIDI: found port {i}: '{name}'")
-                    return i
-            log.debug(f"MIDI: port not found (attempt {attempt + 1}/{retries}), retrying in {delay}s…")
-            time.sleep(delay)
-        log.error(f"MIDI: could not find port matching '{self.port_name}' after {retries} attempts")
-        return None
-
-    def start(self, port_index=None):
-        """Open the MIDI port and start listening. Launches watchdog for auto-reconnect."""
-        if not self.available:
-            log.warning("MIDI: not available, skipping start")
-            return
-
-        # Initial connection (blocks up to ~12 s while raveloxmidi starts up)
-        if port_index is None:
-            port_index = self.find_port()
-        if port_index is not None:
-            self._open_port(port_index)
-
-        # Watchdog runs forever — reconnects if port disappears (e.g. raveloxmidi restart)
-        t = threading.Thread(target=self._reconnect_loop, daemon=True)
-        t.start()
-
-    def _open_port(self, port_index):
-        """Open (or re-open) a port by index. Returns True on success."""
-        try:
-            try:
-                self._midi_in.close_port()
-            except Exception:
-                pass
-            self._midi_in.open_port(port_index)
-            self._midi_in.ignore_types(sysex=True, timing=False, active_sense=True)
-            self._midi_in.set_callback(self._on_midi_message)
-            midi_state["midi_connected"] = True
-            log.info("MIDI: port opened — waiting for iPad")
-            return True
-        except Exception as e:
-            log.error(f"MIDI: failed to open port: {e}")
-            return False
-
-    def _reconnect_loop(self):
-        """Poll every 10 s; reconnect if the named port disappears or was never opened."""
-        POLL = 10.0
-        while self.available:
-            time.sleep(POLL)
-            try:
-                ports = self._midi_in.get_ports()
-                port_alive = any(self.port_name.lower() in p.lower() for p in ports)
-            except Exception:
-                port_alive = False
-
-            if not port_alive:
-                if midi_state["midi_connected"]:
-                    log.warning("MIDI: port lost — will reconnect when available")
-                    midi_state["midi_connected"] = False
-                continue  # port not there yet; try again next cycle
-
-            # Port exists but we're not connected (lost session or initial failure)
-            if not midi_state["midi_connected"]:
-                idx = self.find_port(retries=1, delay=0.0)
-                if idx is not None:
-                    log.info("MIDI: reconnecting…")
-                    self._open_port(idx)
+            log.error("RTP-MIDI server failed to start: %s", e)
+            self.available = False
 
     def stop(self):
-        self.available = False   # signals _reconnect_loop to exit
-        if self._midi_in:
-            try:
-                self._midi_in.close_port()
-            except Exception:
-                pass
+        self.available = False
+        self._server.stop()
         midi_state["midi_connected"] = False
 
+    def _on_session_change(self, connected, name):
+        midi_state["midi_connected"] = connected
+        if connected:
+            log.info("MIDI: iOS device '%s' connected", name)
+        else:
+            log.info("MIDI: iOS device '%s' disconnected", name)
+
     # ------------------------------------------------------------------
-    # Internal MIDI callback (runs in rtmidi's own thread)
+    # Internal MIDI callback (called from RtpMidiServer's recv thread)
     # ------------------------------------------------------------------
 
-    def _on_midi_message(self, event, data=None):
-        message, _delta = event
+    def _on_midi_message(self, message):
         if not message:
             return
 
@@ -306,7 +233,7 @@ class MidiHandler:
 
     def _handle_note_on(self, channel, note, velocity):
         if channel == MIDI_CH_PADS:
-            self._handle_pad(note, velocity)
+            self._handle_pad(note)
         elif channel == MIDI_CH_KEYS:
             self._handle_key_on(note, velocity)
 
@@ -315,7 +242,7 @@ class MidiHandler:
             midi_state["active_notes"].pop(note, None)
             # zone_brightness decays naturally each frame in midi_reactive
 
-    def _handle_pad(self, note, velocity):
+    def _handle_pad(self, note):
         """MPK Mini pad hit → effect trigger or color preset."""
         if note in self.PAD_EFFECTS:
             effect = self.PAD_EFFECTS[note]
