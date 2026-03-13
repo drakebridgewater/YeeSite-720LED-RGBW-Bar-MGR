@@ -8,8 +8,13 @@ Apple MIDI uses two UDP sockets:
 
 iOS discovers the server via mDNS (_apple-midi._udp) or manual IP entry.
 After a two-port handshake the iOS device streams RTP-MIDI to the data port.
+
+The server also browses for peer _apple-midi._udp services and sends outgoing
+invites so that apps like AUM (which only route MIDI to devices that connected
+TO them) will forward MIDI to us.
 """
 
+import random
 import socket
 import struct
 import threading
@@ -17,7 +22,7 @@ import time
 import logging
 
 try:
-    from zeroconf import Zeroconf, ServiceInfo
+    from zeroconf import Zeroconf, ServiceInfo, ServiceBrowser, ServiceStateChange
     _ZEROCONF_AVAILABLE = True
 except ImportError:
     _ZEROCONF_AVAILABLE = False
@@ -28,7 +33,7 @@ _MAGIC = b'\xff\xff'
 
 
 class RtpMidiServer:
-    """Apple MIDI / RTP-MIDI UDP server.
+    """Apple MIDI / RTP-MIDI UDP server with outgoing connection support.
 
     Calls midi_callback(msg: list[int]) for each MIDI message received.
     Calls session_callback(connected: bool, name: str) on session changes.
@@ -43,7 +48,8 @@ class RtpMidiServer:
         self.control_port = control_port
         self.midi_callback = midi_callback
         self.session_callback = session_callback
-        self._sessions = {}   # ssrc -> peer_name
+        self._sessions = {}        # ssrc -> peer_name
+        self._initiated = set()    # (host, port) we've already sent invites to
         self._lock = threading.Lock()
         self._running = False
         self._data_sock = None
@@ -60,7 +66,7 @@ class RtpMidiServer:
                          daemon=True, name="rtp-ctrl").start()
         log.info("RTP-MIDI listening on %d (data) and %d (control)",
                  self.data_port, self.control_port)
-        self._advertise_mdns()
+        self._setup_mdns()
 
     def stop(self):
         self._running = False
@@ -90,15 +96,19 @@ class RtpMidiServer:
         finally:
             s.close()
 
-    def _advertise_mdns(self):
+    # ── mDNS: advertise + browse ───────────────────────────────────────────
+
+    def _setup_mdns(self):
         if not _ZEROCONF_AVAILABLE:
             log.warning("zeroconf not installed — iOS auto-discovery unavailable")
             return
         local_ip = self._get_local_ip()
         if not local_ip or local_ip.startswith('127.'):
-            log.warning("mDNS: could not determine LAN IP, skipping advertisement")
+            log.warning("mDNS: could not determine LAN IP, skipping")
             return
         try:
+            self._zeroconf = Zeroconf(interfaces=[local_ip])
+            # Advertise ourselves
             name = self.OUR_NAME.decode()
             info = ServiceInfo(
                 "_apple-midi._udp.local.",
@@ -107,11 +117,54 @@ class RtpMidiServer:
                 port=self.data_port,
                 properties={},
             )
-            self._zeroconf = Zeroconf(interfaces=[local_ip])
             self._zeroconf.register_service(info)
             log.info("mDNS: advertised %s at %s:%d", name, local_ip, self.data_port)
+            # Browse for peers (e.g. AUM, GarageBand) and connect to them
+            ServiceBrowser(self._zeroconf, "_apple-midi._udp.local.",
+                           handlers=[self._on_service_state_change])
         except Exception as e:
-            log.warning("mDNS advertisement failed: %s", e)
+            log.warning("mDNS setup failed: %s", e)
+
+    def _on_service_state_change(self, zeroconf, service_type, name, state_change):
+        if state_change is not ServiceStateChange.Added:
+            return
+        our_name = self.OUR_NAME.decode()
+        if name.startswith(our_name):
+            return  # skip ourselves
+        try:
+            info = zeroconf.get_service_info(service_type, name)
+            if not info or not info.addresses:
+                return
+            host = socket.inet_ntoa(info.addresses[0])
+            port = info.port
+            log.info("mDNS: discovered peer '%s' at %s:%d — sending invite", name, host, port)
+            threading.Thread(target=self._connect_to, args=(host, port),
+                             daemon=True, name="rtp-connect").start()
+        except Exception as e:
+            log.warning("mDNS peer connect error: %s", e)
+
+    def _connect_to(self, host, port):
+        """Send Apple MIDI invite to a discovered peer (e.g. AUM)."""
+        key = (host, port)
+        with self._lock:
+            if key in self._initiated:
+                return
+            self._initiated.add(key)
+
+        token = random.randint(0, 0xFFFFFFFF)
+        invite = (_MAGIC + b'IN' +
+                  struct.pack('>III', 2, token, self.OUR_SSRC) +
+                  self.OUR_NAME + b'\x00')
+
+        # Send invite on data port to peer's advertised port
+        self._data_sock.sendto(invite, (host, port))
+        log.info("RTP-MIDI: sent invite to %s:%d (data)", host, port)
+
+        # Also send invite on control port to peer's port+1 (Apple convention)
+        self._ctrl_sock.sendto(invite, (host, port + 1))
+        log.info("RTP-MIDI: sent invite to %s:%d (control)", host, port + 1)
+
+    # ── Receive loop ───────────────────────────────────────────────────────
 
     @property
     def connected(self):
@@ -144,6 +197,8 @@ class RtpMidiServer:
             cmd = data[2:4]
             if cmd == b'IN':
                 self._on_invite(data, addr, sock)
+            elif cmd == b'OK':
+                self._on_ok(data, addr)
             elif cmd == b'BY':
                 self._on_end(data)
             elif cmd == b'CK':
@@ -163,6 +218,19 @@ class RtpMidiServer:
                  struct.pack('>III', version, token, self.OUR_SSRC) +
                  self.OUR_NAME + b'\x00')
         sock.sendto(reply, addr)
+        with self._lock:
+            new = peer_ssrc not in self._sessions
+            self._sessions[peer_ssrc] = name
+        if new and self.session_callback:
+            self.session_callback(True, name)
+
+    def _on_ok(self, data, addr):
+        """Handle OK response to an outgoing invite we sent."""
+        if len(data) < 16:
+            return
+        _version, _token, peer_ssrc = struct.unpack_from('>III', data, 4)
+        name = data[16:].rstrip(b'\x00').decode('utf-8', errors='replace')
+        log.info("RTP-MIDI: peer '%s' accepted our invite from %s ssrc=%08x", name, addr, peer_ssrc)
         with self._lock:
             new = peer_ssrc not in self._sessions
             self._sessions[peer_ssrc] = name
