@@ -16,6 +16,12 @@ import threading
 import time
 import logging
 
+try:
+    from zeroconf import Zeroconf, ServiceInfo
+    _ZEROCONF_AVAILABLE = True
+except ImportError:
+    _ZEROCONF_AVAILABLE = False
+
 log = logging.getLogger(__name__)
 
 _MAGIC = b'\xff\xff'
@@ -42,6 +48,7 @@ class RtpMidiServer:
         self._running = False
         self._data_sock = None
         self._ctrl_sock = None
+        self._zeroconf = None
 
     def start(self):
         self._running = True
@@ -53,15 +60,43 @@ class RtpMidiServer:
                          daemon=True, name="rtp-ctrl").start()
         log.info("RTP-MIDI listening on %d (data) and %d (control)",
                  self.data_port, self.control_port)
+        self._advertise_mdns()
 
     def stop(self):
         self._running = False
+        if self._zeroconf:
+            try:
+                self._zeroconf.unregister_all_services()
+                self._zeroconf.close()
+            except Exception:
+                pass
+            self._zeroconf = None
         for s in (self._data_sock, self._ctrl_sock):
             if s:
                 try:
                     s.close()
                 except OSError:
                     pass
+
+    def _advertise_mdns(self):
+        if not _ZEROCONF_AVAILABLE:
+            log.warning("zeroconf not installed — iOS auto-discovery unavailable")
+            return
+        try:
+            local_ip = socket.gethostbyname(socket.gethostname())
+            name = self.OUR_NAME.decode()
+            info = ServiceInfo(
+                "_apple-midi._udp.local.",
+                f"{name}._apple-midi._udp.local.",
+                addresses=[socket.inet_aton(local_ip)],
+                port=self.data_port,
+                properties={},
+            )
+            self._zeroconf = Zeroconf()
+            self._zeroconf.register_service(info)
+            log.info("mDNS: advertised %s at %s:%d", self.OUR_NAME.decode(), local_ip, self.data_port)
+        except Exception as e:
+            log.warning("mDNS advertisement failed: %s", e)
 
     @property
     def connected(self):
