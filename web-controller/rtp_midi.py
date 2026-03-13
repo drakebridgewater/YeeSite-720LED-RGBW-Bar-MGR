@@ -221,8 +221,19 @@ class RtpMidiServer:
         with self._lock:
             new = peer_ssrc not in self._sessions
             self._sessions[peer_ssrc] = name
+            do_return_invite = (addr[0], addr[1]) not in self._initiated
+            if do_return_invite:
+                self._initiated.add((addr[0], addr[1]))
         if new and self.session_callback:
             self.session_callback(True, name)
+        # Send a return invite so apps like AUM (which only route MIDI to
+        # devices that connected TO them) will send MIDI data to us.
+        if do_return_invite:
+            return_invite = (_MAGIC + b'IN' +
+                             struct.pack('>III', 2, random.randint(0, 0xFFFFFFFF), self.OUR_SSRC) +
+                             self.OUR_NAME + b'\x00')
+            sock.sendto(return_invite, addr)
+            log.info("RTP-MIDI: sent return invite to %s", addr)
 
     def _on_ok(self, data, addr):
         """Handle OK response to an outgoing invite we sent."""
