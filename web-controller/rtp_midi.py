@@ -189,6 +189,7 @@ class RtpMidiServer:
         _peer_ssrc, count = struct.unpack_from('>IB', data, 4)
         ts1, = struct.unpack_from('>Q', data, 12)
         now = int(time.monotonic() * 10000)  # 100 µs units
+        log.info("RTP-MIDI clock sync: count=%d len=%d", count, len(data))
         if count == 0:
             reply = (_MAGIC + b'CK' +
                      struct.pack('>IB', self.OUR_SSRC, 1) +
@@ -202,6 +203,7 @@ class RtpMidiServer:
         payload = data[12:]  # skip 12-byte RTP header
         if not payload:
             return
+        log.info("RTP-MIDI packet: %d bytes payload, raw=%s", len(payload), payload[:8].hex())
         b_flag = (payload[0] >> 7) & 1
         if b_flag:
             if len(payload) < 2:
