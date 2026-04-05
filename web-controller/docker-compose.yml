@@ -6,10 +6,7 @@ services:
     container_name: ola
     restart: unless-stopped
     env_file: .env.dockhand
-    networks:
-      - lighting
-    ports:
-      - "${OLA_PORT:-9090}:9090"
+    network_mode: host
     volumes:
       - ${OLA_CONFIG_DIR:-./ola-config}:/etc/ola
 
@@ -19,7 +16,7 @@ services:
     container_name: yeesite-controller
     restart: unless-stopped
     networks:
-      - lighting
+      - proxy
     depends_on:
       - ola
     ports:
@@ -35,7 +32,7 @@ services:
       - FPS=${FPS:-60}
       - RTPMIDI_CONTROL_PORT=${RTPMIDI_CONTROL_PORT:-5004}
       - RTPMIDI_DATA_PORT=${RTPMIDI_DATA_PORT:-5005}
-
 networks:
-  lighting:
-    driver: bridge
+  proxy:
+    name: proxy
+    external: true
