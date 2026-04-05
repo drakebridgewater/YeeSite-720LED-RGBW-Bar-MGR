@@ -5,8 +5,10 @@ services:
       dockerfile: Dockerfile.ola
     container_name: ola
     restart: unless-stopped
-    # host networking required for ArtNet UDP broadcast/unicast and ArtPoll discovery
-    network_mode: host
+    networks:
+      - lighting
+    ports:
+      - "${OLA_PORT:-9090}:9090"
     volumes:
       - ${OLA_CONFIG_DIR:-./ola-config}:/etc/ola
 
@@ -14,11 +16,12 @@ services:
     build: .
     container_name: ola-init
     restart: "no"
-    network_mode: host
+    networks:
+      - lighting
     depends_on:
       - ola
     environment:
-      - OLA_HOST=${OLA_HOST:-localhost}
+      - OLA_HOST=${OLA_HOST:-ola}
       - OLA_PORT=${OLA_PORT:-9090}
       - DMX_UNIVERSE=${DMX_UNIVERSE:-1}
       - ARTNET_IP=${ARTNET_IP:-10.0.15.109}
@@ -28,18 +31,24 @@ services:
     build: .
     container_name: yeesite-controller
     restart: unless-stopped
-    # host networking is required for:
-    #   - mDNS multicast (Bonjour/DNS-SD) so iOS auto-discovers YeeSiteLights
-    #   - RTP-MIDI UDP ports 5004/5005 pairing handshake with iOS
-    # Web UI is accessible at http://<unraid-ip>:${WEB_PORT}
-    network_mode: host
+    networks:
+      - lighting
     depends_on:
       - ola
+    ports:
+      - "${WEB_PORT:-5003}:${WEB_PORT:-5003}"
+      - "${RTPMIDI_CONTROL_PORT:-5004}:${RTPMIDI_CONTROL_PORT:-5004}/udp"
+      - "${RTPMIDI_CONTROL_PORT:-5004}:${RTPMIDI_CONTROL_PORT:-5004}/tcp"
+      - "${RTPMIDI_DATA_PORT:-5005}:${RTPMIDI_DATA_PORT:-5005}/udp"
     environment:
-      - OLA_HOST=${OLA_HOST:-localhost}
+      - OLA_HOST=${OLA_HOST:-ola}
       - OLA_PORT=${OLA_PORT:-9090}
       - DMX_UNIVERSE=${DMX_UNIVERSE:-1}
       - WEB_PORT=${WEB_PORT:-5003}
       - FPS=${FPS:-60}
       - RTPMIDI_CONTROL_PORT=${RTPMIDI_CONTROL_PORT:-5004}
       - RTPMIDI_DATA_PORT=${RTPMIDI_DATA_PORT:-5005}
+
+networks:
+  lighting:
+    driver: bridge
