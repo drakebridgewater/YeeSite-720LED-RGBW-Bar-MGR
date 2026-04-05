@@ -1,7 +1,0 @@
-services:
-  yeesite-controller:
-    network_mode: bridge   # override host networking — not supported on Mac Docker
-    ports:
-      - "5003:5003"
-      - "5004:5004/udp"
-      - "5005:5005/udp"

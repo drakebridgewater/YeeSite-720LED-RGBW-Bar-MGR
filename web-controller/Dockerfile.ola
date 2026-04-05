@@ -1,0 +1,25 @@
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ola \
+    && rm -rf /var/lib/apt/lists/*
+
+# OLA refuses to run as root — create a dedicated user
+RUN useradd -r -s /usr/sbin/nologin ola \
+    && mkdir -p /etc/ola \
+    && chown ola:ola /etc/ola
+
+# Entrypoint runs as root to fix bind-mount ownership, then drops to ola user
+COPY ola-entrypoint.sh /ola-entrypoint.sh
+RUN chmod +x /ola-entrypoint.sh
+
+# Default config dir — override with a volume mount
+VOLUME ["/etc/ola"]
+
+# OLA HTTP API
+EXPOSE 9090
+
+ENTRYPOINT ["/ola-entrypoint.sh"]
+CMD ["olad", "--config-dir", "/etc/ola", "--log-level", "3", "--no-register-with-dns-sd"]
