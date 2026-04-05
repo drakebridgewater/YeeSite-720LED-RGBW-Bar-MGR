@@ -5,6 +5,7 @@ services:
       dockerfile: Dockerfile.ola
     container_name: ola
     restart: unless-stopped
+    env_file: .env.dockhand
     networks:
       - lighting
     ports:
@@ -12,23 +13,9 @@ services:
     volumes:
       - ${OLA_CONFIG_DIR:-./ola-config}:/etc/ola
 
-  ola-init:
-    build: .
-    container_name: ola-init
-    restart: "no"
-    networks:
-      - lighting
-    depends_on:
-      - ola
-    environment:
-      - OLA_HOST=${OLA_HOST:-ola}
-      - OLA_PORT=${OLA_PORT:-9090}
-      - DMX_UNIVERSE=${DMX_UNIVERSE:-1}
-      - ARTNET_IP=${ARTNET_IP:-10.0.15.109}
-    command: python ola-init.py
-
   yeesite-controller:
     build: .
+    env_file: .env.dockhand
     container_name: yeesite-controller
     restart: unless-stopped
     networks:
