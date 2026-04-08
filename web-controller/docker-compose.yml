@@ -15,15 +15,9 @@ services:
     env_file: .env.dockhand
     container_name: yeesite-controller
     restart: unless-stopped
-    networks:
-      - proxy
+    network_mode: host
     depends_on:
       - ola
-    ports:
-      - "${WEB_PORT:-5003}:${WEB_PORT:-5003}"
-      - "${RTPMIDI_CONTROL_PORT:-5004}:${RTPMIDI_CONTROL_PORT:-5004}/udp"
-      - "${RTPMIDI_CONTROL_PORT:-5004}:${RTPMIDI_CONTROL_PORT:-5004}/tcp"
-      - "${RTPMIDI_DATA_PORT:-5005}:${RTPMIDI_DATA_PORT:-5005}/udp"
     environment:
       - OLA_HOST=${OLA_HOST:-ola}
       - OLA_PORT=${OLA_PORT:-9090}
@@ -32,7 +26,4 @@ services:
       - FPS=${FPS:-60}
       - RTPMIDI_CONTROL_PORT=${RTPMIDI_CONTROL_PORT:-5004}
       - RTPMIDI_DATA_PORT=${RTPMIDI_DATA_PORT:-5005}
-networks:
-  proxy:
-    name: proxy
-    external: true
+
