@@ -1,0 +1,4 @@
+sounddevice>=0.4.6
+numpy>=1.24.0
+python-socketio[client]>=5.8.0
+websocket-client>=1.6.0
